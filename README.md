@@ -1,184 +1,324 @@
-🌫️ Karachi AQI Predictor
+# 🌫️ Karachi AQI Predictor
 
-An end-to-end MLOps pipeline for forecasting PM2.5 air quality in Karachi, Pakistan — 24 to 72 hours ahead — with automated daily retraining, explainable AI, and a live interactive dashboard.
+An end-to-end Machine Learning and MLOps project for forecasting **PM2.5 air pollution levels in Karachi, Pakistan**, up to **72 hours ahead**, using advanced feature engineering, explainable AI, and an interactive Streamlit dashboard.
 
+The project combines historical atmospheric data, live ground-sensor readings, and machine learning to provide actionable air-quality forecasts and insights.
 
-📊 Model Performance
+---
 
-ModelMAE (µg/m³)RMSER²Ridge Regression0.8531.3320.980Random Forest0.9371.6220.970XGBoost ✅0.7791.3780.978
+## 🎯 Project Highlights
 
-Forecast HorizonMAE (µg/m³)24-hour ahead7.5448-hour ahead8.4472-hour ahead8.76
+* 📈 Forecast PM2.5 levels 24, 48, and 72 hours ahead
+* 🤖 Compare Ridge Regression, Random Forest, and XGBoost
+* 🔍 Explain predictions using SHAP (Explainable AI)
+* 🌦️ Integrate weather and pollution signals
+* 📊 Interactive Streamlit dashboard
+* ⚙️ End-to-end reproducible ML pipeline
+* 🚀 Production-oriented MLOps workflow
 
+---
 
-AQI breakpoints follow EPA 2024 updated standards (effective May 6, 2024).
+## 📊 Model Performance
 
+### Model Comparison
 
+| Model            | MAE (µg/m³) | RMSE      | R²        |
+| ---------------- | ----------- | --------- | --------- |
+| Ridge Regression | 0.853       | 1.332     | 0.980     |
+| Random Forest    | 0.937       | 1.622     | 0.970     |
+| **XGBoost** ✅    | **0.779**   | **1.378** | **0.978** |
 
+### Forecast Horizon Performance
 
-🏗️ Architecture
+| Forecast Horizon | MAE (µg/m³) |
+| ---------------- | ----------- |
+| 24-hour Ahead    | 7.54        |
+| 48-hour Ahead    | 8.44        |
+| 72-hour Ahead    | 8.76        |
 
-Open-Meteo API (1yr historical)          WAQI API (live ground sensor)
-        │                                         │
-        ▼                                         ▼
-  fetch_data.py  ──────────────────────────────────
-        │
-        ▼
-feature_engineering.py
-  • 44 engineered features
-  • Lag features (1h, 3h, 6h, 12h, 24h, 48h)
-  • Rolling averages (3h, 6h, 12h, 24h)
-  • Cyclic encoding (hour, day, month)
-  • Weather interaction features
-  • EPA 2024 multi-pollutant AQI
-        │
-        ▼
-  train_model.py
-  • Ridge / Random Forest / XGBoost comparison
-  • Time-series split (no data leakage)
-  • Best model saved as best_model.pkl
-        │
-        ▼
-  explain_model.py          forecast_model.py
-  • SHAP TreeExplainer       • Recursive multi-step
-  • Feature importance         forecasting
-  • Beeswarm plots             24hr / 48hr / 72hr
-        │                           │
-        └──────────┬────────────────┘
-                   ▼
-           dashboard/app.py
-           • Streamlit 3-page UI
-           • Live AQI from US Embassy station
-           • 72hr forecast chart
-           • SHAP explainability view
-                   │
-                   ▼
-         GitHub Actions (daily)
-         • Fetches fresh data
-         • Retrains model
-         • Updates forecast
+> AQI calculations follow the updated EPA 2024 standards (effective May 2024).
 
+---
 
-📁 Project Structure
+## 🏗️ System Architecture
 
+```text
+Open-Meteo Historical APIs             WAQI Live Sensor API
+        │                                      │
+        ▼                                      ▼
+                 Data Collection
+                       │
+                       ▼
+                 Feature Engineering
+        • Lag Features
+        • Rolling Statistics
+        • Cyclic Encoding
+        • Weather Interactions
+        • EPA 2024 AQI Calculation
+                       │
+                       ▼
+                 Model Training
+        • Ridge Regression
+        • Random Forest
+        • XGBoost
+                       │
+                       ▼
+              Explainability (SHAP)
+                       │
+                       ▼
+                Forecast Generation
+                 (24h / 48h / 72h)
+                       │
+                       ▼
+                Streamlit Dashboard
+                       │
+                       ▼
+               Automated Retraining
+```
+
+---
+
+## 📁 Project Structure
+
+```text
 karachi-aqi-predictor/
+│
 ├── src/
-│   ├── fetch_data.py          # Data ingestion (Open-Meteo + WAQI)
-│   ├── feature_engineering.py # 44 features, EPA 2024 AQI
-│   ├── train_model.py         # Model training + evaluation
-│   ├── explain_model.py       # SHAP explainability
-│   └── forecast_model.py      # Recursive 72hr forecasting
+│   ├── fetch_data.py
+│   ├── feature_engineering.py
+│   ├── train_model.py
+│   ├── explain_model.py
+│   └── forecast_model.py
+│
 ├── dashboard/
-│   └── app.py                 # Streamlit interactive dashboard
+│   └── app.py
+│
 ├── models/
-│   ├── best_model.pkl         # Trained XGBoost model
-│   ├── shap_importance.png    # Feature importance chart
-│   └── all_results.json       # Model comparison results
-├── data/                      # Auto-generated (gitignored)
-├── .github/workflows/
-│   └── retrain.yml            # Daily retraining pipeline
+│   ├── best_model.pkl
+│   ├── all_results.json
+│   ├── horizon_results.json
+│   ├── shap_importance.png
+│   └── shap_summary.png
+│
+├── data/
 ├── requirements.txt
-└── README.md
+├── README.md
+└── .gitignore
+```
 
+---
 
-🔬 Features Engineered (44 total)
+## 🔬 Feature Engineering
 
-Pollutants: PM2.5, PM10, NO2, Ozone, CO, SO2
+A total of **44 engineered features** were created to capture temporal patterns, weather effects, and pollution dynamics.
 
-Weather: Temperature, Humidity, Wind Speed, Wind Direction, Pressure
+### Air Pollutants
 
-Temporal: Hour, Day of Week, Month, Is Weekend, Is Rush Hour
+* PM2.5
+* PM10
+* NO₂
+* O₃ (Ozone)
+* CO
+* SO₂
 
-Cyclic Encoding: sin/cos of hour, day-of-week, month (prevents discontinuity at midnight/week boundaries)
+### Weather Variables
 
-Lag Features: PM2.5 and AQI at 1h, 3h, 6h, 12h, 24h, 48h prior
+* Temperature
+* Relative Humidity
+* Wind Speed
+* Wind Direction
+* Atmospheric Pressure
 
-Rolling Averages: PM2.5 and AQI over 3h, 6h, 12h, 24h windows
+### Temporal Features
 
-Interaction Features:
+* Hour of Day
+* Day of Week
+* Month
+* Weekend Indicator
+* Rush Hour Indicator
 
+### Cyclic Encoding
 
-pm_ratio = PM2.5 / PM10 — indicates combustion vs dust pollution
-wind_dispersion = wind speed / PM2.5 — atmospheric dispersion proxy
-heat_humidity = temperature × humidity — thermal pollution trapping
+To preserve the cyclical nature of time:
 
+* Hour → sin/cos
+* Day of Week → sin/cos
+* Month → sin/cos
 
+### Lag Features
 
-🧠 Top SHAP Features
+Historical PM2.5 and AQI values at:
 
-| Feature | Mean |SHAP| | Interpretation |
-|---|---|---|
-| pm2_5_roll3 | 7.09 | 3-hour momentum is the strongest predictor |
-| pm10 | 1.96 | Coarse particle correlation with PM2.5 |
-| pm_ratio | 1.19 | Pollution source type indicator |
-| wind_dispersion | 0.77 | Wind clearing effect |
-| pm2_5_lag3 | 0.65 | Recent history |
-| is_rush_hour | 0.32 | Karachi traffic peak (8am, 6pm) |
+* 1 hour
+* 3 hours
+* 6 hours
+* 12 hours
+* 24 hours
+* 48 hours
 
+### Rolling Statistics
 
-🚀 Setup & Run
+Moving averages over:
 
-bash# 1. Clone
+* 3 hours
+* 6 hours
+* 12 hours
+* 24 hours
+
+### Interaction Features
+
+**pm_ratio**
+
+```text
+PM2.5 / PM10
+```
+
+**wind_dispersion**
+
+```text
+Wind Speed / PM2.5
+```
+
+**heat_humidity**
+
+```text
+Temperature × Humidity
+```
+
+---
+
+## 🧠 Model Explainability (SHAP)
+
+The project uses SHAP (SHapley Additive exPlanations) to interpret model predictions and identify the most influential factors affecting PM2.5 levels.
+
+### Top SHAP Features
+
+| Feature         | Mean SHAP Value | Interpretation                             |
+| --------------- | --------------- | ------------------------------------------ |
+| pm2_5_roll3     | 7.09            | Strong short-term pollution momentum       |
+| pm10            | 1.96            | Correlation with coarse particulate matter |
+| pm_ratio        | 1.19            | Indicates pollution source characteristics |
+| wind_dispersion | 0.77            | Wind-driven pollutant dispersion           |
+| pm2_5_lag3      | 0.65            | Recent pollution history                   |
+| is_rush_hour    | 0.32            | Traffic-related emissions                  |
+
+---
+
+## 🚀 Installation & Usage
+
+### Clone Repository
+
+```bash
 git clone https://github.com/MufeedHaider/karachi-aqi-predictor.git
 cd karachi-aqi-predictor
+```
 
-# 2. Virtual environment
+### Create Virtual Environment
+
+```bash
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Mac/Linux
+```
 
-# 3. Install dependencies
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Linux / macOS:
+
+```bash
+source venv/bin/activate
+```
+
+### Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# 4. Add WAQI token (free at aqicn.org/data-platform/token)
-echo WAQI_TOKEN=your_token_here > .env
+### Configure WAQI Token
 
-# 5. Run full pipeline
+```bash
+WAQI_TOKEN=your_token_here
+```
+
+### Run Full Pipeline
+
+```bash
 python src/fetch_data.py
 python src/feature_engineering.py
 python src/train_model.py
 python src/explain_model.py
 python src/forecast_model.py
+```
 
-# 6. Launch dashboard
+### Launch Dashboard
+
+```bash
 streamlit run dashboard/app.py
+```
 
+---
 
-📡 Data Sources
+## 📡 Data Sources
 
-SourcePurposeCostOpen-Meteo Air Quality API1-year hourly historical training dataFree, no keyOpen-Meteo Archive APIHistorical weather dataFree, no keyWAQI APILive reading from US Embassy Karachi ground stationFree token
+| Source                     | Purpose                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| Open-Meteo Air Quality API | Historical air-quality training data                      |
+| Open-Meteo Archive API     | Historical weather data                                   |
+| WAQI API                   | Live air-quality readings from Karachi monitoring station |
 
-Why hybrid? Open-Meteo provides 8,760 rows of hourly historical data needed for model training. WAQI provides real ground-sensor accuracy for the live dashboard reading — matching IQAir quality.
+### Why a Hybrid Approach?
 
+Open-Meteo provides large-scale historical data suitable for model training, while WAQI provides live ground-sensor observations used for real-time dashboard updates and forecast validation.
 
-⚙️ MLOps — Automated Daily Retraining
+---
 
-A GitHub Actions workflow runs every day at midnight PKT:
+## ⚙️ MLOps Workflow
 
+The automated workflow is designed to:
 
-Fetches the latest 24 hours of data
-Appends to training dataset
-Retrains XGBoost model
-Updates the 72-hour forecast
-Commits updated model artifacts back to the repo
+1. Collect fresh environmental data
+2. Update the training dataset
+3. Retrain the forecasting model
+4. Generate updated forecasts
+5. Refresh model artifacts and visualizations
 
+This ensures that predictions remain current as environmental conditions evolve.
 
+---
 
-🎯 Interview Talking Points
+## 🎤 Interview Talking Points
 
+### Why XGBoost?
 
-Why XGBoost over Random Forest? Boosting corrects previous tree errors sequentially. In time-series data with autocorrelation, this outperforms bagging approaches like RF.
-Why recursive forecasting? Target-shifting (predicting 72h ahead directly) degrades because features become stale. Recursive forecasting feeds each prediction as input to the next step, maintaining feature consistency.
-Why cyclic encoding? Raw hour values (23 → 0) create a false discontinuity. sin/cos encoding preserves the circular nature of time.
-Data source limitation: Open-Meteo is an atmospheric model, not ground sensors. For a production system, integrating Pakistan EPA sensor networks would improve real-time accuracy. Our value is the 72-hour forecast trend.
-EPA 2024 update: We use the updated May 2024 breakpoints where "Good" threshold lowered from 12 to 9 µg/m³, reflecting stricter WHO alignment.
+XGBoost improves performance by sequentially correcting errors made by previous trees, making it highly effective for complex environmental time-series forecasting problems.
 
+### Why Recursive Forecasting?
 
+Recursive forecasting allows each predicted value to become an input for future predictions, enabling practical multi-step forecasting up to 72 hours ahead.
 
-👤 Author
+### Why Cyclic Encoding?
 
-Mufeed Haider
-Data Science | ML Engineering
+Time features such as hours and months are cyclical. Sine and cosine transformations preserve these relationships and eliminate artificial discontinuities.
+
+### Key Limitation
+
+Open-Meteo provides modeled atmospheric estimates rather than direct ground-sensor measurements. Future versions can incorporate additional sensor networks to further improve local accuracy.
+
+---
+
+## 👨‍💻 Author
+
+**Mufeed Haider**
+
+Data Science • Machine Learning • MLOps
+
 Karachi, Pakistan
 
+GitHub: https://github.com/MufeedHaider
 
-Data refreshed daily. AQI calculated per US EPA 2024 standards.
+---
+
+⭐ If you found this project interesting, consider giving the repository a star.
