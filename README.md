@@ -289,26 +289,6 @@ This ensures that predictions remain current as environmental conditions evolve.
 
 ---
 
-## 🎤 Interview Talking Points
-
-### Why XGBoost?
-
-XGBoost improves performance by sequentially correcting errors made by previous trees, making it highly effective for complex environmental time-series forecasting problems.
-
-### Why Recursive Forecasting?
-
-Recursive forecasting allows each predicted value to become an input for future predictions, enabling practical multi-step forecasting up to 72 hours ahead.
-
-### Why Cyclic Encoding?
-
-Time features such as hours and months are cyclical. Sine and cosine transformations preserve these relationships and eliminate artificial discontinuities.
-
-### Key Limitation
-
-Open-Meteo provides modeled atmospheric estimates rather than direct ground-sensor measurements. Future versions can incorporate additional sensor networks to further improve local accuracy.
-
----
-
 ## 👨‍💻 Author
 
 **Mufeed Haider**
