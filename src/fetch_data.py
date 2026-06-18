@@ -1,13 +1,14 @@
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
+import os
 
 # Karachi coordinates
 LAT = 24.8607
 LON = 67.0011
 
 # ── WAQI token — real ground sensor (US Embassy Karachi) ──────
-WAQI_TOKEN = "775df988c95cb825dbdfd638825a71a19d870fbe"
+WAQI_TOKEN = os.getenv("WAQI_TOKEN", "775df988c95cb825dbdfd638825a71a19d870fbe")
 
 # -------------------------------------------------------------
 # 1. WAQI — Live ground sensor reading
