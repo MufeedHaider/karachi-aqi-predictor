@@ -1,3 +1,7 @@
+import os
+os.makedirs("data", exist_ok=True)
+os.makedirs("models", exist_ok=True)
+
 import pandas as pd
 import numpy as np
 import pickle
