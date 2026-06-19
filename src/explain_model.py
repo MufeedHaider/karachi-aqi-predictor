@@ -28,31 +28,21 @@ def explain():
     print("Computing SHAP values (may take 1-2 min)...")
 
     # -----------------------------
-    # SAFE SHAP FIX (FINAL VERSION)
+    # FINAL SHAP SAFE FIX (ADDED HERE)
     # -----------------------------
 
-    # try to extract booster safely
+    # force booster first (avoids base_score crash)
+    if hasattr(model, "get_booster"):
+        model_for_shap = model.get_booster()
+    else:
+        model_for_shap = model
+
     try:
-        booster = model.get_booster()
-    except Exception:
-        booster = model
+        explainer = shap.TreeExplainer(model_for_shap)
+    except Exception as e:
+        print("TreeExplainer failed, using fallback SHAP Explainer:", e)
+        explainer = shap.Explainer(model, X_sample)
 
-    explainer = None
-
-    # 1st: safest path (avoids sklearn wrapper parsing issues)
-    try:
-        explainer = shap.TreeExplainer(booster)
-    except Exception:
-        pass
-
-    # 2nd: modern SHAP fallback
-    if explainer is None:
-        try:
-            explainer = shap.Explainer(model, X_sample)
-        except Exception:
-            explainer = shap.TreeExplainer(model)
-
-    # compute SHAP values
     shap_values = explainer.shap_values(X_sample)
 
     # -----------------------------
