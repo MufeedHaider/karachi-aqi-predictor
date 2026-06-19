@@ -8,7 +8,28 @@ import pickle
 import shap
 import matplotlib.pyplot as plt
 import matplotlib
+import xgboost as xgb
 matplotlib.use('Agg')  # headless mode
+
+
+def fix_xgboost_base_score(model):
+    """
+    Fix XGBoost base_score parsing issue for SHAP compatibility.
+    XGBoost sometimes stores base_score as a string like '[3.0423906E1]'
+    which SHAP's TreeExplainer cannot parse. This function converts it to float.
+    """
+    if isinstance(model, xgb.XGBRegressor):
+        try:
+            base_score_str = model.get_params().get('base_score')
+            if isinstance(base_score_str, str):
+                # Strip brackets: '[3.0423906E1]' -> '3.0423906E1'
+                cleaned = base_score_str.strip('[]')
+                # Convert scientific notation to float
+                base_score_float = float(cleaned)
+                model.set_params(base_score=base_score_float)
+        except (ValueError, AttributeError):
+            pass  # If conversion fails, continue with original model
+    return model
 
 
 def explain():
@@ -27,9 +48,9 @@ def explain():
 
     print("Computing SHAP values (may take 1-2 min)...")
 
-    # -----------------------------
-    # FINAL SHAP SAFE FIX (ADDED HERE)
-    # -----------------------------
+    # Fix XGBoost base_score if needed
+    if isinstance(model, xgb.XGBRegressor):
+        model = fix_xgboost_base_score(model)
 
     # force booster first (avoids base_score crash)
     if hasattr(model, "get_booster"):
