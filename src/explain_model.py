@@ -9,7 +9,11 @@ import shap
 import matplotlib.pyplot as plt
 import matplotlib
 import xgboost as xgb
+import warnings
 matplotlib.use('Agg')  # headless mode
+
+# Suppress warnings
+warnings.filterwarnings('ignore')
 
 
 def fix_xgboost_base_score(model):
@@ -27,8 +31,9 @@ def fix_xgboost_base_score(model):
                 # Convert scientific notation to float
                 base_score_float = float(cleaned)
                 model.set_params(base_score=base_score_float)
-        except (ValueError, AttributeError):
-            pass  # If conversion fails, continue with original model
+                print(f"Fixed base_score from '{base_score_str}' to {base_score_float}")
+        except (ValueError, AttributeError) as e:
+            print(f"Warning: Could not fix base_score: {e}")
     return model
 
 
@@ -61,7 +66,8 @@ def explain():
     try:
         explainer = shap.TreeExplainer(model_for_shap)
     except Exception as e:
-        print("TreeExplainer failed, using fallback SHAP Explainer:", e)
+        print(f"TreeExplainer failed with: {e}")
+        print("Using fallback SHAP Explainer...")
         explainer = shap.Explainer(model, X_sample)
 
     shap_values = explainer.shap_values(X_sample)
