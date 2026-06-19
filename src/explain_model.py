@@ -28,8 +28,10 @@ def explain():
     print("Computing SHAP values (may take 1-2 min)...")
 
     # -----------------------------
-    # FIXED SHAP EXPLAINER SECTION
+    # SAFE SHAP FIX (FINAL VERSION)
     # -----------------------------
+
+    # try to extract booster safely
     try:
         booster = model.get_booster()
     except Exception:
@@ -37,23 +39,25 @@ def explain():
 
     explainer = None
 
-    # 1st attempt: TreeExplainer with booster
+    # 1st: safest path (avoids sklearn wrapper parsing issues)
     try:
         explainer = shap.TreeExplainer(booster)
     except Exception:
         pass
 
-    # 2nd attempt: modern SHAP API
+    # 2nd: modern SHAP fallback
     if explainer is None:
         try:
             explainer = shap.Explainer(model, X_sample)
         except Exception:
             explainer = shap.TreeExplainer(model)
 
-    # SHAP values
+    # compute SHAP values
     shap_values = explainer.shap_values(X_sample)
 
-    # --- Plot 1: Feature Importance (Bar) ---
+    # -----------------------------
+    # PLOT 1: Feature Importance
+    # -----------------------------
     plt.figure(figsize=(10, 8))
     shap.summary_plot(
         shap_values,
@@ -69,7 +73,9 @@ def explain():
 
     print("Saved: models/shap_importance.png")
 
-    # --- Plot 2: SHAP Beeswarm ---
+    # -----------------------------
+    # PLOT 2: SHAP Summary
+    # -----------------------------
     plt.figure(figsize=(10, 8))
     shap.summary_plot(
         shap_values,
@@ -84,7 +90,9 @@ def explain():
 
     print("Saved: models/shap_summary.png")
 
-    # --- Feature importance table ---
+    # -----------------------------
+    # Feature importance table
+    # -----------------------------
     mean_shap = np.abs(shap_values).mean(axis=0)
 
     importance_df = pd.DataFrame({
