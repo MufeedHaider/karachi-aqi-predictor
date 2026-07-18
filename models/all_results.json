@@ -1,17 +1,17 @@
 {
   "Ridge Regression": {
-    "MAE": 0.855,
-    "RMSE": 1.26,
+    "MAE": 0.85,
+    "RMSE": 1.252,
     "R2": 0.974
   },
   "Random Forest": {
-    "MAE": 0.822,
-    "RMSE": 1.353,
+    "MAE": 0.809,
+    "RMSE": 1.343,
     "R2": 0.97
   },
   "XGBoost": {
-    "MAE": 0.662,
-    "RMSE": 1.074,
+    "MAE": 0.649,
+    "RMSE": 1.05,
     "R2": 0.981
   }
 }
