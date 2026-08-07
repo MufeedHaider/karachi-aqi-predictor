@@ -1,14 +1,14 @@
 {
   "24hr": {
-    "MAE": 6.466,
+    "MAE": 6.847,
     "horizon_hours": 24
   },
   "48hr": {
-    "MAE": 7.009,
+    "MAE": 7.33,
     "horizon_hours": 48
   },
   "72hr": {
-    "MAE": 7.324,
+    "MAE": 7.496,
     "horizon_hours": 72
   }
 }
