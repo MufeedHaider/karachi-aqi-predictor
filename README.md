@@ -242,6 +242,18 @@ The repo ships `data/forecast_72hr.csv`, `data/recent_history.csv` and
 `data/ground_history.csv`, so the dashboard renders on a fresh clone before you
 run anything.
 
+### Deployment
+
+The dashboard is deployed on Streamlit Community Cloud from `dashboard/app.py`.
+Note `dashboard/requirements.txt`: Streamlit looks for a dependency file beside
+the entrypoint before the repository root, and the dashboard needs only
+streamlit, pandas and plotly. The root file carries xgboost, shap and
+scikit-learn for training and CI; installing those on the hosted app wasted
+hundreds of megabytes and got it CPU-throttled on the first deploy.
+
+The hosted app reads the artefacts committed by the nightly retrain, so it
+updates once a day rather than continuously.
+
 ---
 
 ## AQI scale (US EPA, 2024 revision)

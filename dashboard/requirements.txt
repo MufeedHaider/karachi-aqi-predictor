@@ -1,0 +1,18 @@
+# Dependencies for the deployed dashboard ONLY.
+#
+# Streamlit Community Cloud looks for a requirements file next to the app's
+# entrypoint before falling back to the repository root, so this file — not the
+# root one — is what gets installed for the hosted app.
+#
+# That matters: the root requirements.txt carries xgboost, shap, scikit-learn
+# and matplotlib for training and CI. The dashboard imports none of them — it
+# only reads the CSV and JSON artefacts the pipeline commits. Installing them
+# anyway cost hundreds of megabytes and got the free-tier app CPU-throttled on
+# its first deploy.
+#
+# If the dashboard ever imports something new, add it here as well as to the
+# root file.
+
+streamlit==1.58.0
+pandas==3.0.3
+plotly==6.8.0
