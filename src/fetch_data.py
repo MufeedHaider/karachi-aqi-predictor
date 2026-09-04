@@ -1,237 +1,208 @@
-import os
-os.makedirs("data", exist_ok=True)
-os.makedirs("models", exist_ok=True)
+"""
+Data ingestion for the Karachi PM2.5 forecaster.
 
-import requests
-import pandas as pd
+Writes three files, all from Open-Meteo:
+
+  data/raw_air_quality.csv    — a year of hourly CAMS pollution + weather
+  data/forecast_weather.csv   — forecast weather for the coming days
+  data/reference_forecast.csv — the CAMS PM2.5 forecast
+
+All three are model *inputs*, not the thing being predicted. The target is
+measured PM2.5 from ground monitors.
+
+Measured ground-sensor data is fetched separately by src/ground_truth.py, which
+talks to OpenAQ. The WAQI feed this project originally used (the US Consulate
+station) stopped reporting in March 2025 and has been removed rather than left
+in place returning an eighteen-month-old value.
+
+Credentials
+-----------
+API keys are read from the environment only. An earlier version carried a
+working token as a hardcoded default, which meant it was published in a public
+repository and in every commit of its history. Keys belong in GitHub Actions
+secrets and a local .env file, never in source.
+"""
+
+from __future__ import annotations
+
+import os
 from datetime import datetime, timedelta
-import os
 
-# Karachi coordinates
-LAT = 24.8607
-LON = 67.0011
+import pandas as pd
+import requests
 
-# ── WAQI token — real ground sensor (US Embassy Karachi) ──────
-WAQI_TOKEN = os.getenv("WAQI_TOKEN", "775df988c95cb825dbdfd638825a71a19d870fbe")
+try:  # optional convenience for local runs
+    from dotenv import load_dotenv
 
-# -------------------------------------------------------------
-# 1. WAQI — Live ground sensor reading
-# -------------------------------------------------------------
-def fetch_waqi_live():
+    load_dotenv()
+except ImportError:  # pragma: no cover
+    pass
+
+LAT, LON = 24.8607, 67.0011
+TIMEZONE = "Asia/Karachi"
+TIMEOUT = 30
+
+AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
+ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+POLLUTANT_VARS = [
+    "pm2_5",
+    "pm10",
+    "nitrogen_dioxide",
+    "ozone",
+    "carbon_monoxide",
+    "sulphur_dioxide",
+]
+POLLUTANT_RENAME = {
+    "nitrogen_dioxide": "no2",
+    "carbon_monoxide": "co",
+    "sulphur_dioxide": "so2",
+}
+WEATHER_VARS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "surface_pressure",
+]
+WEATHER_RENAME = {
+    "temperature_2m": "temperature",
+    "relative_humidity_2m": "humidity",
+    "wind_speed_10m": "wind_speed",
+    "wind_direction_10m": "wind_dir",
+    "surface_pressure": "pressure",
+}
+
+
+def _hourly_frame(url, params, variables, rename):
+    """Call an Open-Meteo endpoint and return its hourly block as a DataFrame."""
+    response = requests.get(url, params=params, timeout=TIMEOUT)
+    response.raise_for_status()
+    payload = response.json()
+
+    if "hourly" not in payload:
+        raise RuntimeError(f"no hourly block in response from {url}: {payload}")
+
+    hourly = payload["hourly"]
+    frame = pd.DataFrame({"timestamp": pd.to_datetime(hourly["time"])})
+    for var in variables:
+        frame[rename.get(var, var)] = hourly[var]
+    return frame
+
+
+def fetch_history(start_date, end_date):
+    """One year of hourly pollution and weather observations."""
+    air = _hourly_frame(
+        AIR_QUALITY_URL,
+        {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": POLLUTANT_VARS,
+            "timezone": TIMEZONE,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+        POLLUTANT_VARS,
+        POLLUTANT_RENAME,
+    )
+    weather = _hourly_frame(
+        ARCHIVE_URL,
+        {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": WEATHER_VARS,
+            "timezone": TIMEZONE,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+        WEATHER_VARS,
+        WEATHER_RENAME,
+    )
+    merged = pd.merge(air, weather, on="timestamp", how="inner")
+    return merged.sort_values("timestamp").reset_index(drop=True)
+
+
+def fetch_forecast_weather(days=4):
+    """Forecast weather for the coming days.
+
+    This is a real model input: when forecasting PM2.5 at t+48, the weather
+    expected at t+48 is information that genuinely exists at t.
     """
-    Fetches real-time PM2.5 from the US Embassy Karachi ground station.
-    This is the same source IQAir uses. Far more accurate than model data.
+    return _hourly_frame(
+        FORECAST_URL,
+        {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": WEATHER_VARS,
+            "timezone": TIMEZONE,
+            "forecast_days": days,
+        },
+        WEATHER_VARS,
+        WEATHER_RENAME,
+    )
+
+
+def fetch_reference_forecast(days=4):
+    """The CAMS PM2.5 forecast, used both as a feature and as the benchmark.
+
+    This is legitimate here precisely because the target is a *measurement*, not
+    CAMS itself. The model is told what the physics simulation expects for the
+    target hour and, separately, how far that simulation currently sits from the
+    monitors — so it can use the transport and dust signal while correcting the
+    bias. Over Karachi that bias is large: CAMS reads about 37% low on average
+    and 2.4x low in December.
+
+    The same series is the baseline the model is scored against. Beating it is
+    the test of whether this project adds anything to the physics.
     """
-    url = f"https://api.waqi.info/feed/karachi/?token={WAQI_TOKEN}"
-    try:
-        r = requests.get(url, timeout=15)
-        d = r.json()
-        if d["status"] != "ok":
-            print(f"  WAQI error: {d}")
-            return None
-
-        data    = d["data"]
-        iaqi    = data["iaqi"]
-        station = data["city"]["name"]
-        ts_str  = data["time"]["s"]           # e.g. "2025-03-04 16:00:00"
-        ts      = datetime.strptime(ts_str, "%Y-%m-%d %H:%M:%S")
-
-        result = {
-            "timestamp":   ts,
-            "station":     station,
-            "aqi_live":    int(data["aqi"]),
-            "pm25_live":   float(iaqi.get("pm25", {}).get("v", None) or 0),
-            "temperature": float(iaqi.get("t",    {}).get("v", None) or 0),
-            "humidity":    float(iaqi.get("h",     {}).get("v", None) or 0),
-            "pressure":    float(iaqi.get("p",     {}).get("v", None) or 0),
-            "wind_speed":  float(iaqi.get("w",     {}).get("v", None) or 0),
-            "dew":         float(iaqi.get("dew",   {}).get("v", None) or 0),
-            "source":      "WAQI / US Embassy Karachi Ground Station",
-        }
-
-        print(f"  Station  : {station}")
-        print(f"  Timestamp: {ts}")
-        print(f"  AQI      : {result['aqi_live']}")
-        print(f"  PM2.5    : {result['pm25_live']} µg/m³")
-        print(f"  Temp     : {result['temperature']}°C")
-        print(f"  Humidity : {result['humidity']}%")
-        print(f"  Wind     : {result['wind_speed']} m/s")
-        return result
-
-    except Exception as e:
-        print(f"  WAQI fetch failed: {e}")
-        return None
+    return _hourly_frame(
+        AIR_QUALITY_URL,
+        {
+            "latitude": LAT,
+            "longitude": LON,
+            "hourly": POLLUTANT_VARS,
+            "timezone": TIMEZONE,
+            "forecast_days": days,
+        },
+        POLLUTANT_VARS,
+        POLLUTANT_RENAME,
+    )
 
 
-# -------------------------------------------------------------
-# 2. Open-Meteo — 1-year historical air quality
-# -------------------------------------------------------------
-def fetch_air_quality(start_date, end_date):
-    url = "https://air-quality-api.open-meteo.com/v1/air-quality"
-    params = {
-        "latitude": LAT, "longitude": LON,
-        "hourly": ["pm2_5","pm10","nitrogen_dioxide",
-                   "ozone","carbon_monoxide","sulphur_dioxide"],
-        "timezone": "Asia/Karachi",
-        "start_date": start_date, "end_date": end_date
-    }
-    r = requests.get(url, params=params, timeout=30)
-    data = r.json()
-    if "hourly" not in data:
-        print(f"  Air quality API error: {data}")
-        return pd.DataFrame()
-    d = data["hourly"]
-    return pd.DataFrame({
-        "timestamp": d["time"],
-        "pm2_5": d["pm2_5"],
-        "pm10":  d["pm10"],
-        "no2":   d["nitrogen_dioxide"],
-        "ozone": d["ozone"],
-        "co":    d["carbon_monoxide"],
-        "so2":   d["sulphur_dioxide"],
-    })
-
-
-# -------------------------------------------------------------
-# 3. Open-Meteo — 1-year historical weather
-# -------------------------------------------------------------
-def fetch_weather(start_date, end_date):
-    url = "https://archive-api.open-meteo.com/v1/archive"
-    params = {
-        "latitude": LAT, "longitude": LON,
-        "hourly": ["temperature_2m","relative_humidity_2m",
-                   "wind_speed_10m","wind_direction_10m","surface_pressure"],
-        "timezone": "Asia/Karachi",
-        "start_date": start_date, "end_date": end_date
-    }
-    r = requests.get(url, params=params, timeout=30)
-    data = r.json()
-    if "hourly" not in data:
-        print(f"  Weather API error: {data}")
-        return pd.DataFrame()
-    d = data["hourly"]
-    return pd.DataFrame({
-        "timestamp":   d["time"],
-        "temperature": d["temperature_2m"],
-        "humidity":    d["relative_humidity_2m"],
-        "wind_speed":  d["wind_speed_10m"],
-        "wind_dir":    d["wind_direction_10m"],
-        "pressure":    d["surface_pressure"],
-    })
-
-
-# -------------------------------------------------------------
-# 4. Open-Meteo — 72-hour forecast
-# -------------------------------------------------------------
-def fetch_forecast():
-    url = "https://air-quality-api.open-meteo.com/v1/air-quality"
-    params = {
-        "latitude": LAT, "longitude": LON,
-        "hourly": ["pm2_5","pm10","nitrogen_dioxide",
-                   "ozone","carbon_monoxide","sulphur_dioxide"],
-        "timezone": "Asia/Karachi",
-        "forecast_days": 3
-    }
-    r = requests.get(url, params=params, timeout=30)
-    data = r.json()
-    if "hourly" not in data:
-        print(f"  Forecast API error: {data}")
-        return pd.DataFrame()
-    d = data["hourly"]
-    df = pd.DataFrame({
-        "timestamp": d["time"],
-        "pm2_5": d["pm2_5"],
-        "pm10":  d["pm10"],
-        "no2":   d["nitrogen_dioxide"],
-        "ozone": d["ozone"],
-        "co":    d["carbon_monoxide"],
-        "so2":   d["sulphur_dioxide"],
-    })
-    df["is_forecast"] = True
-    return df
-
-
-# -------------------------------------------------------------
-# MAIN
-# -------------------------------------------------------------
 def main():
-    today      = datetime.today()
-    end_date   = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+    os.makedirs("data", exist_ok=True)
+    os.makedirs("models", exist_ok=True)
+
+    today = datetime.today()
+    end_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
     start_date = (today - timedelta(days=365)).strftime("%Y-%m-%d")
 
-    print(f"Fetching data: {start_date} → {end_date}\n")
+    print(f"[1/3] Historical observations {start_date} -> {end_date}")
+    history = fetch_history(start_date, end_date)
+    history["is_forecast"] = False
+    history.to_csv("data/raw_air_quality.csv", index=False)
+    print(f"  {len(history)} hourly rows -> data/raw_air_quality.csv")
 
-    # ── Step 1: Live ground sensor reading ───────────────────
-    print("[1/4] WAQI — Live ground sensor (US Embassy Karachi)...")
-    waqi = fetch_waqi_live()
+    print("\n[2/3] Forecast weather (model input)")
+    try:
+        weather = fetch_forecast_weather()
+        weather.to_csv("data/forecast_weather.csv", index=False)
+        print(f"  {len(weather)} hourly rows -> data/forecast_weather.csv")
+    except Exception as exc:
+        print(f"  failed: {exc}")
+        print("  the forecaster will carry the last observed weather forward")
 
-    # ── Step 2: Historical air quality ────────────────────────
-    print("\n[2/4] Open-Meteo — Historical air quality (1 year)...")
-    aq_df = fetch_air_quality(start_date, end_date)
-    print(f"  Rows: {len(aq_df)}")
+    print("\n[3/3] CAMS PM2.5 forecast (model input and benchmark)")
+    try:
+        reference = fetch_reference_forecast()
+        reference.to_csv("data/reference_forecast.csv", index=False)
+        print(f"  {len(reference)} hourly rows -> data/reference_forecast.csv")
+    except Exception as exc:
+        print(f"  failed: {exc}")
 
-    # ── Step 3: Historical weather ────────────────────────────
-    print("\n[3/4] Open-Meteo — Historical weather (1 year)...")
-    wx_df = fetch_weather(start_date, end_date)
-    print(f"  Rows: {len(wx_df)}")
-
-    # ── Step 4: 72hr forecast ─────────────────────────────────
-    print("\n[4/4] Open-Meteo — 72-hour forecast...")
-    fc_df = fetch_forecast()
-    print(f"  Rows: {len(fc_df)}")
-
-    if aq_df.empty or wx_df.empty:
-        print("\nMissing critical data. Exiting.")
-        return
-
-    # ── Merge historical ──────────────────────────────────────
-    aq_df["timestamp"] = pd.to_datetime(aq_df["timestamp"])
-    wx_df["timestamp"] = pd.to_datetime(wx_df["timestamp"])
-    fc_df["timestamp"] = pd.to_datetime(fc_df["timestamp"])
-
-    historical = pd.merge(aq_df, wx_df, on="timestamp", how="inner")
-    historical["is_forecast"] = False
-
-    # ── WAQI calibration ──────────────────────────────────────
-    # If WAQI live reading is available, we store it separately.
-    # The dashboard uses it for the "current AQI" display card.
-    # Historical training still uses Open-Meteo (1 year of data).
-    if waqi:
-        waqi_df = pd.DataFrame([{
-            "timestamp":   waqi["timestamp"],
-            "aqi_live":    waqi["aqi_live"],
-            "pm25_live":   waqi["pm25_live"],
-            "temperature": waqi["temperature"],
-            "humidity":    waqi["humidity"],
-            "pressure":    waqi["pressure"],
-            "wind_speed":  waqi["wind_speed"],
-            "station":     waqi["station"],
-            "source":      waqi["source"],
-        }])
-        waqi_df.to_csv("data/waqi_live.csv", index=False)
-        print(f"\n  WAQI live reading saved → data/waqi_live.csv")
-
-    # ── Forecast weather columns ──────────────────────────────
-    for col in ["temperature","humidity","wind_speed","wind_dir","pressure"]:
-        if col not in fc_df.columns:
-            fc_df[col] = None
-
-    # ── Combine & save ────────────────────────────────────────
-    full_df = pd.concat([historical, fc_df], ignore_index=True)
-    full_df = full_df.drop_duplicates(subset="timestamp")
-    full_df = full_df.sort_values("timestamp").reset_index(drop=True)
-
-    full_df.to_csv("data/raw_data.csv", index=False)
-    historical.to_csv("data/raw_air_quality.csv", index=False)
-
-    print(f"\nDone!")
-    print(f"  Historical rows : {len(historical)}")
-    print(f"  Forecast rows   : {len(fc_df)}")
-    print(f"  Total saved     : {len(full_df)}")
-    if waqi:
-        print(f"\nLive AQI (ground sensor): {waqi['aqi_live']}")
-        print(f"Live PM2.5 (ground sensor): {waqi['pm25_live']} µg/m³")
-        print(f"Source: {waqi['source']}")
+    print("\nOpen-Meteo ingestion complete.")
+    print("Measured ground data comes from src/ground_truth.py (OpenAQ).")
 
 
 if __name__ == "__main__":

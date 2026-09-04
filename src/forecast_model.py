@@ -1,216 +1,274 @@
-import os
-os.makedirs("data", exist_ok=True)
-os.makedirs("models", exist_ok=True)
+"""
+72-hour forecast of measured PM2.5: one direct model per lead time.
 
-import pandas as pd
-import numpy as np
-import pickle
+Direct, not recursive
+---------------------
+An earlier version predicted t+1, fed that prediction back as if it were an
+observation, and repeated 72 times. Features changed meaning between fitting and
+serving, every exogenous input was frozen at its seed value, and the published
+forecast came out as a flat line varying by 2 µg/m³ over three days.
+
+Seventy-two separate models remove the feedback entirely. Model *h* sees only
+what is observable at time *t* and predicts directly at *t+h*.
+
+What each model gets for the target hour
+----------------------------------------
+Two things that genuinely exist at forecast time:
+
+  * the Open-Meteo **weather forecast** for that hour
+  * the **CAMS PM2.5 forecast** for that hour
+
+The second is the interesting one. CAMS is a real operational product, and over
+Karachi it reads about 37% low — but it is not noise: it carries the regional
+transport and dust signal. Handing it to the model as a feature, alongside the
+measured history that reveals how far off it currently is, lets the model use
+the physics and correct the bias at the same time. The backtest says that
+combination beats CAMS alone by 30-40%.
+
+Backtesting caveat, stated plainly
+----------------------------------
+Backtests substitute *analysed* weather and CAMS for *forecast* weather and
+CAMS, because neither archive stores what was predicted at the time. Real
+forecasts carry their own error, so live accuracy will be somewhat below the
+backtested figures. The CAMS baseline is handicapped identically, so the
+comparison between them stays fair.
+"""
+
+from __future__ import annotations
+
 import json
-from sklearn.metrics import mean_absolute_error, r2_score
+import os
+import pickle
+import sys
+
+import numpy as np
+import pandas as pd
 import xgboost as xgb
 
-FEATURE_COLS = [
-    'no2', 'ozone', 'co', 'so2', 'pm10',
-    'temperature', 'humidity', 'wind_speed', 'wind_dir', 'pressure',
-    'hour', 'day_of_week', 'month', 'is_weekend', 'is_rush_hour',
-    'hour_sin', 'hour_cos', 'month_sin', 'month_cos', 'dow_sin', 'dow_cos',
-    'pm2_5_lag1', 'aqi_lag1', 'pm2_5_lag3', 'aqi_lag3',
-    'pm2_5_lag6', 'aqi_lag6', 'pm2_5_lag12', 'aqi_lag12',
-    'pm2_5_lag24', 'aqi_lag24', 'pm2_5_lag48', 'aqi_lag48',
-    'pm2_5_roll3', 'aqi_roll3', 'pm2_5_roll6', 'aqi_roll6',
-    'pm2_5_roll12', 'aqi_roll12', 'pm2_5_roll24', 'aqi_roll24',
-    'pm_ratio', 'wind_dispersion', 'heat_humidity'
-]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def calc_aqi_pm25(pm25):
-    breakpoints = [
-        (0.0,  12.0,   0,  50),
-        (12.1, 35.4,  51, 100),
-        (35.5, 55.4, 101, 150),
-        (55.5, 150.4, 151, 200),
-        (150.5,250.4, 201, 300),
-        (250.5,500.4, 301, 500),
-    ]
-    for lo, hi, alo, ahi in breakpoints:
-        if lo <= pm25 <= hi:
-            return float(round(((ahi-alo)/(hi-lo))*(pm25-lo)+alo))
-    return 500.0
+from aqi import aqi_from_pm25, category  # noqa: E402
+from evaluation import rolling_origin  # noqa: E402
+from feature_engineering import (  # noqa: E402
+    MODEL_FEATURES,
+    WEATHER_COLS,
+    build_supervised,
+    train_test_split_index,
+)
 
-def recursive_forecast(model, last_known_row, steps=72):
-    """
-    Recursively predict future PM2.5 values.
-    Each prediction becomes input for the next step.
-    """
-    history = last_known_row.copy()
-    predictions = []
+MAX_HORIZON = 72
+REPORT_HORIZONS = [1, 3, 6, 12, 24, 48, 72]
 
-    for step in range(1, steps + 1):
-        # Build feature row
-        row = {}
 
-        # Static/slowly changing features — carry forward
-        for col in ['no2', 'ozone', 'co', 'so2', 'pm10',
-                    'temperature', 'humidity', 'wind_speed',
-                    'wind_dir', 'pressure']:
-            row[col] = history.get(col, 0)
-
-        # Time features for next hour
-        next_hour       = int((history['hour'] + step) % 24)
-        next_dow        = int((history['day_of_week'] + step // 24) % 7)
-        next_month      = int(history['month'])
-        row['hour']         = next_hour
-        row['day_of_week']  = next_dow
-        row['month']        = next_month
-        row['is_weekend']   = 1 if next_dow in [5, 6] else 0
-        row['is_rush_hour'] = 1 if next_hour in [7,8,9,17,18,19] else 0
-
-        # Cyclic encoding
-        row['hour_sin']  = np.sin(2*np.pi*next_hour/24)
-        row['hour_cos']  = np.cos(2*np.pi*next_hour/24)
-        row['month_sin'] = np.sin(2*np.pi*next_month/12)
-        row['month_cos'] = np.cos(2*np.pi*next_month/12)
-        row['dow_sin']   = np.sin(2*np.pi*next_dow/7)
-        row['dow_cos']   = np.cos(2*np.pi*next_dow/7)
-
-        # Lag features from prediction history
-        all_preds = [history['pm2_5']] + predictions
-        def get_lag(n):
-            if len(all_preds) >= n:
-                return all_preds[-n]
-            return history.get(f'pm2_5_lag{n}', all_preds[0])
-
-        row['pm2_5_lag1']  = get_lag(1)
-        row['pm2_5_lag3']  = get_lag(3)
-        row['pm2_5_lag6']  = get_lag(6)
-        row['pm2_5_lag12'] = get_lag(12)
-        row['pm2_5_lag24'] = get_lag(24)
-        row['pm2_5_lag48'] = get_lag(48)
-
-        # AQI lags
-        row['aqi_lag1']  = calc_aqi_pm25(get_lag(1))
-        row['aqi_lag3']  = calc_aqi_pm25(get_lag(3))
-        row['aqi_lag6']  = calc_aqi_pm25(get_lag(6))
-        row['aqi_lag12'] = calc_aqi_pm25(get_lag(12))
-        row['aqi_lag24'] = calc_aqi_pm25(get_lag(24))
-        row['aqi_lag48'] = calc_aqi_pm25(get_lag(48))
-
-        # Rolling averages
-        window = [history['pm2_5']] + predictions
-        row['pm2_5_roll3']  = np.mean(window[-3:]  if len(window)>=3  else window)
-        row['pm2_5_roll6']  = np.mean(window[-6:]  if len(window)>=6  else window)
-        row['pm2_5_roll12'] = np.mean(window[-12:] if len(window)>=12 else window)
-        row['pm2_5_roll24'] = np.mean(window[-24:] if len(window)>=24 else window)
-
-        row['aqi_roll3']  = calc_aqi_pm25(row['pm2_5_roll3'])
-        row['aqi_roll6']  = calc_aqi_pm25(row['pm2_5_roll6'])
-        row['aqi_roll12'] = calc_aqi_pm25(row['pm2_5_roll12'])
-        row['aqi_roll24'] = calc_aqi_pm25(row['pm2_5_roll24'])
-
-        # Interaction features
-        pm10 = row['pm10'] if row['pm10'] > 0 else 1
-        row['pm_ratio']        = row['pm2_5_lag1'] / (pm10 + 1e-6)
-        row['wind_dispersion'] = row['wind_speed'] / (row['pm2_5_lag1'] + 1e-6)
-        row['heat_humidity']   = row['temperature'] * row['humidity'] / 100
-
-        # Predict
-        X_row = pd.DataFrame([row])[FEATURE_COLS]
-        pred  = float(model.predict(X_row)[0])
-        pred  = max(0, pred)  # PM2.5 cannot be negative
-        predictions.append(pred)
-
-    return predictions
-
-def evaluate_recursive(model, df, horizon_hours):
-    """Evaluate recursive forecasting accuracy on test set."""
-    test_start = int(len(df) * 0.8)
-    # Sample 50 starting points from test set
-    test_indices = range(test_start, len(df) - horizon_hours, 10)
-    test_indices = list(test_indices)[:50]
-
-    maes = []
-    for idx in test_indices:
-        last_row  = df.iloc[idx].to_dict()
-        actuals   = df['pm2_5'].iloc[idx+1 : idx+1+horizon_hours].values
-        preds     = recursive_forecast(model, last_row, steps=horizon_hours)
-        preds     = preds[:len(actuals)]
-        if len(actuals) == len(preds):
-            maes.append(mean_absolute_error(actuals, preds))
-
-    return np.mean(maes) if maes else None
-
-def main():
-    df = pd.read_csv("data/featured_data.csv", parse_dates=["timestamp"])
-
-    # Train base model
-    X = df[FEATURE_COLS]
-    y = df["pm2_5"]
-    split = int(len(df) * 0.8)
-
-    print("Training base XGBoost model for recursive forecasting...")
-    model = xgb.XGBRegressor(
+def make_model():
+    """Small on purpose: within 1% of a model three times the size, and 72 of
+    them have to fit inside a CI run."""
+    return xgb.XGBRegressor(
         n_estimators=300,
-        learning_rate=0.05,
+        learning_rate=0.06,
         max_depth=6,
+        min_child_weight=5,
         subsample=0.8,
         colsample_bytree=0.8,
         random_state=42,
-        verbosity=0
+        verbosity=0,
+        n_jobs=-1,
     )
-    model.fit(X.iloc[:split], y.iloc[:split])
 
-    print("\nEvaluating recursive multi-step accuracy...")
-    results = {}
-    for label, hours in [("24hr", 24), ("48hr", 48), ("72hr", 72)]:
-        mae = evaluate_recursive(model, df, hours)
-        results[label] = {"MAE": round(mae, 3), "horizon_hours": hours}
-        print(f"  {label}  ->  MAE: {mae:.3f} ug/m3")
 
-    print("\n" + "="*40)
-    print("Recursive Forecast Summary:")
-    print("="*40)
-    for label, res in results.items():
-        print(f"  {label}  ->  MAE: {res['MAE']}")
-    print("="*40)
+def fit_all_horizons(df, backtest_horizons=REPORT_HORIZONS):
+    """Fit the production model for every horizon; backtest a representative set.
 
-    # Generate actual 72hr forecast from latest data
-    print("\nGenerating live 72-hour forecast...")
-    last_row   = df.iloc[-1].to_dict()
-    forecast_72 = recursive_forecast(model, last_row, steps=72)
+    Production models train on all available data. The reported metrics come
+    from rolling-origin folds, so they describe genuinely unseen periods rather
+    than the data the shipped model was fitted on.
+    """
+    models, metrics = {}, {}
 
-    last_ts = pd.to_datetime(df.iloc[-1]['timestamp'])
-    timestamps = [last_ts + pd.Timedelta(hours=i+1) for i in range(72)]
+    for h in range(1, MAX_HORIZON + 1):
+        X, y_delta, current, target_ts = build_supervised(df, h)
 
-    forecast_df = pd.DataFrame({
-        "timestamp": timestamps,
-        "pm2_5_predicted": [round(p, 2) for p in forecast_72],
-        "aqi_predicted": [calc_aqi_pm25(p) for p in forecast_72],
-        "horizon_hour": list(range(1, 73))
-    })
+        if h in backtest_horizons:
+            def fit_predict(X_tr, d_tr, X_te):
+                model = make_model()
+                model.fit(X_tr, d_tr)
+                return model.predict(X_te)
 
-    # AQI category labels
-    def aqi_label(aqi):
-        if aqi <= 50:   return "Good"
-        if aqi <= 100:  return "Moderate"
-        if aqi <= 150:  return "Unhealthy for Sensitive Groups"
-        if aqi <= 200:  return "Unhealthy"
-        if aqi <= 300:  return "Very Unhealthy"
-        return "Hazardous"
+            per_fold, combined = rolling_origin(
+                X, y_delta, current, target_ts,
+                fit_predict, cams=X["fut_cams_pm25"],
+            )
+            combined["horizon_hours"] = h
+            combined["per_fold"] = per_fold
+            metrics[h] = combined
 
-    forecast_df["aqi_category"] = forecast_df["aqi_predicted"].apply(aqi_label)
+        production = make_model()
+        production.fit(X, y_delta)
+        models[h] = production
 
+    return models, metrics
+
+
+def _aligned_future(path, anchor, columns):
+    """Load a forecast file and index it by hours ahead of `anchor`."""
+    if not os.path.exists(path):
+        return None
+    try:
+        frame = pd.read_csv(path, parse_dates=["timestamp"])
+    except Exception as exc:  # pragma: no cover
+        print(f"  could not read {path}: {exc}")
+        return None
+
+    frame = frame[frame["timestamp"] > anchor].copy()
+    if frame.empty:
+        return None
+    frame["horizon"] = (
+        (frame["timestamp"] - anchor).dt.total_seconds() // 3600
+    ).astype(int)
+    frame = frame[frame["horizon"].between(1, MAX_HORIZON)]
+    available = [c for c in columns if c in frame.columns]
+    return frame.set_index("horizon")[available] if not frame.empty else None
+
+
+def forecast_from_latest(models, df):
+    """Produce the live 1-72 hour forecast from the most recent measured hour."""
+    latest = df.iloc[-1]
+    anchor = pd.to_datetime(latest["timestamp"])
+    current = float(latest["ground_pm25"])
+
+    weather = _aligned_future("data/forecast_weather.csv", anchor, WEATHER_COLS)
+    cams = _aligned_future("data/reference_forecast.csv", anchor, ["pm2_5"])
+
+    degraded = []
+    if weather is None:
+        degraded.append("weather")
+    if cams is None:
+        degraded.append("CAMS")
+
+    base = {c: latest[c] for c in MODEL_FEATURES if not c.startswith("fut_")}
+    rows = []
+
+    for h in range(1, MAX_HORIZON + 1):
+        target_ts = anchor + pd.Timedelta(hours=h)
+        feat = dict(base)
+
+        for col in WEATHER_COLS:
+            value = None
+            if weather is not None and h in weather.index:
+                value = weather.loc[h, col] if col in weather.columns else None
+            feat["fut_" + col] = (
+                float(value) if value is not None and pd.notna(value)
+                else float(latest[col])
+            )
+
+        if cams is not None and h in cams.index and pd.notna(cams.loc[h, "pm2_5"]):
+            feat["fut_cams_pm25"] = float(cams.loc[h, "pm2_5"])
+        else:
+            feat["fut_cams_pm25"] = float(latest["cams_pm25"])
+
+        feat["fut_hour_sin"] = np.sin(2 * np.pi * target_ts.hour / 24)
+        feat["fut_hour_cos"] = np.cos(2 * np.pi * target_ts.hour / 24)
+        feat["fut_is_rush_hour"] = float(target_ts.hour in (7, 8, 9, 17, 18, 19))
+
+        X = pd.DataFrame([feat])[MODEL_FEATURES]
+        pm25 = max(0.0, current + float(models[h].predict(X)[0]))
+        aqi = aqi_from_pm25(pm25)
+
+        rows.append(
+            {
+                "timestamp": target_ts,
+                "horizon_hour": h,
+                "pm2_5_predicted": round(pm25, 2),
+                "aqi_predicted": aqi,
+                "aqi_category": category(aqi),
+                "cams_pm2_5": round(feat["fut_cams_pm25"], 2),
+            }
+        )
+
+    return pd.DataFrame(rows), degraded
+
+
+def main():
+    os.makedirs("models", exist_ok=True)
+    os.makedirs("data", exist_ok=True)
+
+    df = pd.read_csv("data/featured_data.csv", parse_dates=["timestamp"])
+    print(f"Dataset: {len(df)} rows, {df['timestamp'].min()} -> {df['timestamp'].max()}")
+    print(f"Target: measured PM2.5 (mean {df['ground_pm25'].mean():.1f} ug/m3)\n")
+
+    print(f"Fitting {MAX_HORIZON} direct models and backtesting "
+          f"{len(REPORT_HORIZONS)} of them...")
+    models, metrics = fit_all_horizons(df)
+
+    print("\nRolling-origin backtest (every season tested):")
+    print(f"  {'lead':>6}{'MAE':>8}{'persist':>9}{'CAMS':>8}"
+          f"{'vs persist':>12}{'vs CAMS':>10}{'R2':>8}")
+    for h in REPORT_HORIZONS:
+        m = metrics[h]
+        persist = m["MAE"] / (1 - m["skill_vs_persistence"])
+        print(
+            f"  {str(h) + 'h':>6}{m['MAE']:>8.2f}{persist:>9.2f}{m['cams_MAE']:>8.2f}"
+            f"{m['skill_vs_persistence']:>11.1%}{m['skill_vs_cams']:>10.1%}{m['R2']:>8.3f}"
+        )
+
+    mean_cams = float(np.mean([metrics[h]["skill_vs_cams"] for h in metrics]))
+    mean_persist = float(np.mean([metrics[h]["skill_vs_persistence"] for h in metrics]))
+    print(f"\n  Mean skill vs persistence: {mean_persist:.1%}")
+    print(f"  Mean skill vs CAMS       : {mean_cams:.1%}")
+
+    forecast_df, degraded = forecast_from_latest(models, df)
     forecast_df.to_csv("data/forecast_72hr.csv", index=False)
 
-    print("\nSample 72-hour forecast:")
-    print(forecast_df[["timestamp","pm2_5_predicted",
-                        "aqi_predicted","aqi_category"]].iloc[::12].to_string(index=False))
+    if degraded:
+        print(f"\n  WARNING: no live {' or '.join(degraded)} forecast available; "
+              "last observed values carried forward.")
+
+    print(f"\nForecast issued from {df['timestamp'].iloc[-1]} "
+          f"(measured PM2.5 {df['ground_pm25'].iloc[-1]:.1f})")
+    print(
+        forecast_df.iloc[[0, 11, 23, 47, 71]][
+            ["timestamp", "pm2_5_predicted", "aqi_predicted", "aqi_category"]
+        ].to_string(index=False)
+    )
+    spread = forecast_df["pm2_5_predicted"]
+    print(f"  range {spread.min():.1f} - {spread.max():.1f} ug/m3 (sd {spread.std():.2f})")
+
+    recent = df[df["timestamp"] >= df["timestamp"].max() - pd.Timedelta(days=30)]
+    recent[
+        ["timestamp", "ground_pm25", "cams_pm25", "aqi", "n_stations",
+         "temperature", "humidity", "wind_speed", "pressure"]
+    ].to_csv("data/recent_history.csv", index=False)
 
     with open("models/horizon_results.json", "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(
+            {
+                "generated_at": pd.Timestamp.now(tz="UTC").isoformat(),
+                "forecast_issued_at": str(df["timestamp"].iloc[-1]),
+                "target": "measured PM2.5 (OpenAQ ground monitors, city median)",
+                "evaluation": "rolling-origin backtest, 5 folds",
+                "degraded_inputs": degraded,
+                "mean_skill_vs_persistence": round(mean_persist, 3),
+                "mean_skill_vs_cams": round(mean_cams, 3),
+                "horizons": {
+                    str(h): {k: v for k, v in metrics[h].items() if k != "per_fold"}
+                    for h in sorted(metrics)
+                },
+                "folds": {
+                    str(h): metrics[h]["per_fold"] for h in sorted(metrics)
+                },
+            },
+            f,
+            indent=2,
+        )
 
-    with open("models/recursive_model.pkl", "wb") as f:
-        pickle.dump(model, f)
+    with open("models/horizon_models.pkl", "wb") as f:
+        pickle.dump(models, f)
+    with open("models/feature_cols.pkl", "wb") as f:
+        pickle.dump(MODEL_FEATURES, f)
 
-    print("\nForecast saved to data/forecast_72hr.csv")
+    size_mb = os.path.getsize("models/horizon_models.pkl") / 1e6
+    print(f"\nSaved {MAX_HORIZON} models ({size_mb:.1f} MB), metrics, forecast, history")
+
 
 if __name__ == "__main__":
     main()

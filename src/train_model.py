@@ -1,109 +1,201 @@
-import os
-os.makedirs("data", exist_ok=True)
-os.makedirs("models", exist_ok=True)
+"""
+Algorithm selection for the measured-PM2.5 forecaster.
 
-import pandas as pd
+Compares Ridge, Random Forest and XGBoost against three baselines, at three
+lead times, using rolling-origin backtesting so every season is tested. The
+winner is written to models/best_model_name.txt and used by forecast_model.py.
+
+The baseline that matters most is CAMS. It is not a strawman — it is the
+Copernicus atmospheric model's own operational forecast for the same hour. If
+this project cannot beat it, the project has no reason to exist.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+
 import numpy as np
-from sklearn.model_selection import TimeSeriesSplit
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 import xgboost as xgb
-import pickle
-import json
 
-FEATURE_COLS = [
-    'no2', 'ozone', 'co', 'so2', 'pm10',
-    'temperature', 'humidity', 'wind_speed', 'wind_dir', 'pressure',
-    'hour', 'day_of_week', 'month', 'is_weekend', 'is_rush_hour',
-    'hour_sin', 'hour_cos', 'month_sin', 'month_cos', 'dow_sin', 'dow_cos',
-    'pm2_5_lag1', 'aqi_lag1', 'pm2_5_lag3', 'aqi_lag3',
-    'pm2_5_lag6', 'aqi_lag6', 'pm2_5_lag12', 'aqi_lag12',
-    'pm2_5_lag24', 'aqi_lag24', 'pm2_5_lag48', 'aqi_lag48',
-    'pm2_5_roll3', 'aqi_roll3', 'pm2_5_roll6', 'aqi_roll6',
-    'pm2_5_roll12', 'aqi_roll12', 'pm2_5_roll24', 'aqi_roll24',
-    'pm_ratio', 'wind_dispersion', 'heat_humidity'
-]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-def evaluate(y_true, y_pred, name):
-    mae  = mean_absolute_error(y_true, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    r2   = r2_score(y_true, y_pred)
-    print(f"\n  {name}:")
-    print(f"    MAE  : {mae:.3f}  (avg error in ug/m3)")
-    print(f"    RMSE : {rmse:.3f}")
-    print(f"    R2   : {r2:.3f}  (1.0 = perfect)")
-    return {"MAE": round(mae,3), "RMSE": round(rmse,3), "R2": round(r2,3)}
+from evaluation import (  # noqa: E402
+    climatology_map,
+    metrics,
+    print_fold_table,
+    rolling_origin,
+)
+from feature_engineering import (  # noqa: E402
+    BANNED_AS_FEATURES,
+    MODEL_FEATURES,
+    build_supervised,
+)
 
-def train_and_evaluate():
-    df = pd.read_csv("data/featured_data.csv", parse_dates=["timestamp"])
+SELECTION_HORIZON = 24
+REPORT_HORIZONS = [1, 24, 72]
 
-    X = df[FEATURE_COLS]
-    y = df["pm2_5"]
 
-    # Time Series Split — shuffle=False zaroori hai
-    # Last 20% test, baaki train
-    split = int(len(df) * 0.8)
-    X_train, X_test = X.iloc[:split], X.iloc[split:]
-    y_train, y_test = y.iloc[:split], y.iloc[split:]
-
-    print(f"Training: {len(X_train)} rows | Test: {len(X_test)} rows")
-    print(f"Features: {len(FEATURE_COLS)}")
-    print("\nTraining models...")
-
-    models = {
-        "Ridge Regression": Ridge(alpha=1.0),
-        "Random Forest"   : RandomForestRegressor(
-                                n_estimators=200,
-                                max_depth=15,
-                                min_samples_leaf=5,
-                                random_state=42,
-                                n_jobs=-1
-                            ),
-        "XGBoost"         : xgb.XGBRegressor(
-                                n_estimators=300,
-                                learning_rate=0.05,
-                                max_depth=6,
-                                subsample=0.8,
-                                colsample_bytree=0.8,
-                                random_state=42,
-                                verbosity=0
-                            ),
+def candidates():
+    return {
+        "Ridge Regression": lambda: make_pipeline(StandardScaler(), Ridge(alpha=1.0)),
+        "Random Forest": lambda: RandomForestRegressor(
+            n_estimators=120, max_depth=14, min_samples_leaf=5,
+            random_state=42, n_jobs=-1,
+        ),
+        "XGBoost": lambda: xgb.XGBRegressor(
+            n_estimators=400, learning_rate=0.05, max_depth=6,
+            min_child_weight=5, subsample=0.8, colsample_bytree=0.8,
+            random_state=42, verbosity=0, n_jobs=-1,
+        ),
     }
 
+
+def assert_no_leakage():
+    """The target is a future measurement; nothing derived from it may be input."""
+    overlap = BANNED_AS_FEATURES.intersection(MODEL_FEATURES)
+    if overlap:
+        raise ValueError(
+            f"Target-derived columns present in the feature list: {sorted(overlap)}. "
+            "Features must be observable at time t."
+        )
+
+
+def evaluate_horizon(df, horizon):
+    X, y_delta, current, target_ts = build_supervised(df, horizon)
+    cams = X["fut_cams_pm25"]
+
     results = {}
-    trained = {}
+    for name, factory in candidates().items():
+        def fit_predict(X_tr, d_tr, X_te, _factory=factory):
+            model = _factory()
+            model.fit(X_tr, d_tr)
+            return model.predict(X_te)
 
-    for name, model in models.items():
-        model.fit(X_train, y_train)
-        preds = model.predict(X_test)
-        results[name] = evaluate(y_test, preds, name)
-        trained[name] = model
+        per_fold, combined = rolling_origin(
+            X, y_delta, current, target_ts, fit_predict, cams=cams
+        )
+        combined["per_fold"] = per_fold
+        results[name] = combined
 
-    # Best model = lowest MAE
-    best_name = min(results, key=lambda x: results[x]["MAE"])
-    best_model = trained[best_name]
+    # Baselines, scored on exactly the same pooled folds.
+    def score_baseline(make_pred):
+        def fit_predict(X_tr, d_tr, X_te):
+            return make_pred(X_tr, d_tr, X_te)
+        _, combined = rolling_origin(
+            X, y_delta, current, target_ts, fit_predict, cams=cams
+        )
+        return combined
 
-    print(f"\n{'='*40}")
-    print(f"Best Model: {best_name}")
-    print(f"MAE  : {results[best_name]['MAE']}")
-    print(f"RMSE : {results[best_name]['RMSE']}")
-    print(f"R2   : {results[best_name]['R2']}")
-    print(f"{'='*40}")
+    results["Persistence (baseline)"] = score_baseline(
+        lambda X_tr, d_tr, X_te: np.zeros(len(X_te))
+    )
 
-    # Save karo
-    with open("models/best_model.pkl", "wb") as f:
-        pickle.dump(best_model, f)
-    with open("models/feature_cols.pkl", "wb") as f:
-        pickle.dump(FEATURE_COLS, f)
-    with open("models/all_results.json", "w") as f:
-        json.dump(results, f, indent=2)
+    hours = target_ts.dt.hour
+    levels = current + y_delta
+
+    def climatology(X_tr, d_tr, X_te):
+        n_train = len(X_tr)
+        mapping = climatology_map(hours.iloc[:n_train], levels.iloc[:n_train])
+        overall = float(mapping.mean())
+        target = hours.iloc[n_train:n_train + len(X_te)]
+        predicted_level = target.map(mapping).fillna(overall).to_numpy()
+        return predicted_level - current.iloc[n_train:n_train + len(X_te)].to_numpy()
+
+    results["Hourly climatology (baseline)"] = score_baseline(climatology)
+
+    def cams_raw(X_tr, d_tr, X_te):
+        n_train = len(X_tr)
+        return (
+            X_te["fut_cams_pm25"].to_numpy()
+            - current.iloc[n_train:n_train + len(X_te)].to_numpy()
+        )
+
+    results["CAMS forecast (baseline)"] = score_baseline(cams_raw)
+    return results
+
+
+def main():
+    os.makedirs("models", exist_ok=True)
+    assert_no_leakage()
+
+    df = pd.read_csv("data/featured_data.csv", parse_dates=["timestamp"])
+    print(f"Dataset: {len(df)} hourly rows, "
+          f"{df['timestamp'].min()} -> {df['timestamp'].max()}")
+    print(f"Target: measured PM2.5 (median of Karachi ground monitors)")
+    print(f"Features: {len(MODEL_FEATURES)}")
+    print("Evaluation: rolling-origin, 5 folds, every season tested\n")
+
+    all_results = {}
+    selection = None
+
+    for horizon in REPORT_HORIZONS:
+        results = evaluate_horizon(df, horizon)
+        all_results[f"{horizon}hr"] = {
+            k: {kk: vv for kk, vv in v.items() if kk != "per_fold"}
+            for k, v in results.items()
+        }
+
+        best_key = min(
+            (k for k in results if not k.endswith("(baseline)")),
+            key=lambda k: results[k]["MAE"],
+        )
+        print_fold_table(
+            results[best_key]["per_fold"],
+            results[best_key],
+            f"{horizon}-hour horizon — best model: {best_key}",
+        )
+        print(f"  {'model':<32}{'MAE':>8}{'R2':>8}{'vs persist':>12}{'vs CAMS':>10}")
+        for name, m in results.items():
+            print(
+                f"  {name:<32}{m['MAE']:>8.2f}{m['R2']:>8.3f}"
+                f"{m['skill_vs_persistence']:>11.1%}"
+                f"{(m.get('skill_vs_cams') or 0):>10.1%}"
+            )
+        print()
+
+        if horizon == SELECTION_HORIZON:
+            selection = results
+
+    algorithms = {
+        k: v for k, v in selection.items() if not k.endswith("(baseline)")
+    }
+    best_name = min(algorithms, key=lambda k: algorithms[k]["MAE"])
+    best = algorithms[best_name]
+
+    print("=" * 68)
+    print(f"Selected at the {SELECTION_HORIZON}-hour horizon: {best_name}")
+    print(f"  MAE {best['MAE']} ug/m3   R2 {best['R2']}")
+    print(f"  {best['skill_vs_persistence']:.1%} better than persistence")
+    print(f"  {best['skill_vs_cams']:.1%} better than the CAMS forecast")
+    print("=" * 68)
+
     with open("models/best_model_name.txt", "w") as f:
         f.write(best_name)
+    with open("models/all_results.json", "w") as f:
+        json.dump(
+            {
+                "target": "measured PM2.5 (OpenAQ ground monitors, city median)",
+                "evaluation": "rolling-origin backtest, 5 folds",
+                "selection_horizon_hours": SELECTION_HORIZON,
+                "n_features": len(MODEL_FEATURES),
+                "n_rows": int(len(df)),
+                "period_start": str(df["timestamp"].min()),
+                "period_end": str(df["timestamp"].max()),
+                "best_model": best_name,
+                "by_horizon": all_results,
+            },
+            f,
+            indent=2,
+        )
+    print("\nWrote models/all_results.json and models/best_model_name.txt")
 
-    print("\nAll models saved!")
-    return results, best_name
 
 if __name__ == "__main__":
-    train_and_evaluate()
+    main()

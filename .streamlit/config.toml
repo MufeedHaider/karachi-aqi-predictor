@@ -1,0 +1,17 @@
+# The dashboard's cards are dark navy with pale text, so the app pins a dark
+# theme rather than inheriting the viewer's. Without this, Streamlit Community
+# Cloud serves the light theme by default and the cards become unreadable.
+
+[theme]
+base = "dark"
+primaryColor = "#60a5fa"
+backgroundColor = "#0b1220"
+secondaryBackgroundColor = "#0f172a"
+textColor = "#e2e8f0"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

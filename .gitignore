@@ -1,6 +1,27 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 .env
-*.csv
+
+# Large regenerable artefacts
+data/featured_data.csv
+data/raw_air_quality.csv
+data/raw_data.csv
+data/forecast_weather.csv
+data/reference_forecast.csv
+data/waqi_live.csv
+data/ground_current.csv
+data/cache/
 models/*.pkl
+
+# Committed on purpose: the dashboard renders from these on a fresh clone, and
+# the daily retrain leaves a visible record of how accuracy moves over time.
+#   data/forecast_72hr.csv, data/recent_history.csv, data/ground_history.csv
+#   models/*.json, models/shap_importance.csv, models/*.png
+
+# Local scratch — not part of the project
+Claude outputs/
+notebooks/.ipynb_checkpoints/
+*.NEW

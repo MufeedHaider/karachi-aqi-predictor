@@ -1,0 +1,49 @@
+feature,label,mean_shap,horizon_hours
+cams_gap,Measured minus CAMS (now),7.708174,24
+fut_cams_pm25,CAMS forecast for target hour,4.9057746,24
+fut_wind_speed,Forecast wind speed,3.5851867,24
+cams_pm10,CAMS PM10,2.055542,24
+pm25_roll3,Measured PM2.5 3h mean,1.9314927,24
+wind_dispersion,Wind dispersion,1.7509538,24
+cams_pm25,CAMS PM2.5 (now),1.5073483,24
+pm25_lag24,Measured PM2.5 24h ago,1.2602183,24
+pm25_lag48,Measured PM2.5 48h ago,1.1170442,24
+cams_ratio,Measured / CAMS ratio (now),1.0982006,24
+fut_wind_dir,Forecast wind direction,1.0540217,24
+fut_temperature,Forecast temperature,0.96726,24
+month,Month,0.9091081,24
+fut_humidity,Forecast humidity,0.8980992,24
+pm_ratio,CAMS PM2.5 / PM10 ratio,0.8254228,24
+wind_dir,Wind direction,0.7693396,24
+temperature,Temperature,0.7598768,24
+heat_humidity,Heat x humidity,0.7027406,24
+so2,SO2,0.6963196,24
+cams_ratio_roll24,Measured / CAMS ratio (24h mean),0.6223096,24
+pm25_lag1,Measured PM2.5 1h ago,0.52381265,24
+pressure,Pressure,0.5193431,24
+humidity,Humidity,0.47999674,24
+pm25_roll24,Measured PM2.5 24h mean,0.43777597,24
+wind_speed,Wind speed,0.43477556,24
+no2,NO2,0.41106156,24
+pm25_std24,Measured PM2.5 24h volatility,0.40354052,24
+pm25_lag3,Measured PM2.5 3h ago,0.37547612,24
+co,CO,0.36869302,24
+pm25_roll12,Measured PM2.5 12h mean,0.3507093,24
+hour_cos,hour cos,0.34982428,24
+hour,Hour of day,0.30889297,24
+ozone,Ozone,0.29511762,24
+pm25_lag12,Measured PM2.5 12h ago,0.28334227,24
+fut_pressure,Forecast pressure,0.25621584,24
+pm25_roll6,Measured PM2.5 6h mean,0.23473717,24
+pm25_lag6,Measured PM2.5 6h ago,0.22468756,24
+month_cos,month cos,0.2207675,24
+dow_cos,dow cos,0.19396843,24
+dow_sin,dow sin,0.17508438,24
+day_of_week,Day of week,0.17357782,24
+month_sin,month sin,0.12652025,24
+hour_sin,hour sin,0.090781026,24
+fut_hour_cos,Target hour (cos),0.036821052,24
+is_rush_hour,Rush hour,0.026313461,24
+is_weekend,Weekend,0.012298551,24
+fut_hour_sin,Target hour (sin),0.008178654,24
+fut_is_rush_hour,Target hour is rush hour,0.0026451768,24
