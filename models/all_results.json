@@ -10,206 +10,206 @@
   "by_horizon": {
     "1hr": {
       "Ridge Regression": {
-        "MAE": 3.391,
-        "RMSE": 5.293,
-        "R2": 0.831,
-        "skill_vs_persistence": -0.084,
-        "cams_MAE": 9.82,
-        "skill_vs_cams": 0.655,
+        "MAE": 3.402,
+        "RMSE": 5.3,
+        "R2": 0.83,
+        "skill_vs_persistence": -0.087,
+        "cams_MAE": 9.781,
+        "skill_vs_cams": 0.652,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       },
       "Random Forest": {
-        "MAE": 2.822,
-        "RMSE": 4.732,
-        "R2": 0.865,
-        "skill_vs_persistence": 0.098,
-        "cams_MAE": 9.82,
-        "skill_vs_cams": 0.713,
+        "MAE": 2.834,
+        "RMSE": 4.741,
+        "R2": 0.864,
+        "skill_vs_persistence": 0.094,
+        "cams_MAE": 9.781,
+        "skill_vs_cams": 0.71,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       },
       "XGBoost": {
-        "MAE": 2.916,
-        "RMSE": 4.793,
-        "R2": 0.861,
-        "skill_vs_persistence": 0.068,
-        "cams_MAE": 9.82,
-        "skill_vs_cams": 0.703,
+        "MAE": 2.885,
+        "RMSE": 4.749,
+        "R2": 0.863,
+        "skill_vs_persistence": 0.078,
+        "cams_MAE": 9.781,
+        "skill_vs_cams": 0.705,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       },
       "Persistence (baseline)": {
-        "MAE": 3.128,
-        "RMSE": 5.05,
-        "R2": 0.846,
+        "MAE": 3.129,
+        "RMSE": 5.049,
+        "R2": 0.845,
         "skill_vs_persistence": 0.0,
-        "cams_MAE": 9.82,
-        "skill_vs_cams": 0.681,
+        "cams_MAE": 9.781,
+        "skill_vs_cams": 0.68,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       },
       "Hourly climatology (baseline)": {
-        "MAE": 28.876,
-        "RMSE": 31.507,
-        "R2": -5.003,
-        "skill_vs_persistence": -8.231,
-        "cams_MAE": 9.82,
-        "skill_vs_cams": -1.941,
+        "MAE": 28.87,
+        "RMSE": 31.503,
+        "R2": -5.022,
+        "skill_vs_persistence": -8.226,
+        "cams_MAE": 9.781,
+        "skill_vs_cams": -1.952,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       },
       "CAMS forecast (baseline)": {
-        "MAE": 9.82,
-        "RMSE": 13.596,
-        "R2": -0.118,
-        "skill_vs_persistence": -2.139,
-        "cams_MAE": 9.82,
+        "MAE": 9.781,
+        "RMSE": 13.57,
+        "R2": -0.117,
+        "skill_vs_persistence": -2.126,
+        "cams_MAE": 9.781,
         "skill_vs_cams": 0.0,
         "n_test": 4740,
         "n_folds": 5,
-        "mean_observed": 29.04
+        "mean_observed": 29.05
       }
     },
     "24hr": {
       "Ridge Regression": {
-        "MAE": 8.202,
-        "RMSE": 11.942,
-        "R2": 0.111,
-        "skill_vs_persistence": -0.245,
-        "cams_MAE": 9.656,
-        "skill_vs_cams": 0.151,
+        "MAE": 8.173,
+        "RMSE": 11.93,
+        "R2": 0.11,
+        "skill_vs_persistence": -0.243,
+        "cams_MAE": 9.616,
+        "skill_vs_cams": 0.15,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       },
       "Random Forest": {
-        "MAE": 6.036,
-        "RMSE": 9.065,
-        "R2": 0.488,
+        "MAE": 6.02,
+        "RMSE": 9.058,
+        "R2": 0.487,
         "skill_vs_persistence": 0.084,
-        "cams_MAE": 9.656,
-        "skill_vs_cams": 0.375,
+        "cams_MAE": 9.616,
+        "skill_vs_cams": 0.374,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       },
       "XGBoost": {
-        "MAE": 5.899,
-        "RMSE": 8.851,
-        "R2": 0.512,
-        "skill_vs_persistence": 0.104,
-        "cams_MAE": 9.656,
-        "skill_vs_cams": 0.389,
+        "MAE": 5.789,
+        "RMSE": 8.647,
+        "R2": 0.532,
+        "skill_vs_persistence": 0.12,
+        "cams_MAE": 9.616,
+        "skill_vs_cams": 0.398,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       },
       "Persistence (baseline)": {
-        "MAE": 6.586,
-        "RMSE": 10.329,
-        "R2": 0.335,
+        "MAE": 6.575,
+        "RMSE": 10.322,
+        "R2": 0.333,
         "skill_vs_persistence": 0.0,
-        "cams_MAE": 9.656,
-        "skill_vs_cams": 0.318,
+        "cams_MAE": 9.616,
+        "skill_vs_cams": 0.316,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       },
       "Hourly climatology (baseline)": {
-        "MAE": 29.252,
-        "RMSE": 31.887,
-        "R2": -5.339,
-        "skill_vs_persistence": -3.441,
-        "cams_MAE": 9.656,
-        "skill_vs_cams": -2.029,
+        "MAE": 29.246,
+        "RMSE": 31.883,
+        "R2": -5.36,
+        "skill_vs_persistence": -3.448,
+        "cams_MAE": 9.616,
+        "skill_vs_cams": -2.041,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       },
       "CAMS forecast (baseline)": {
-        "MAE": 9.656,
-        "RMSE": 13.412,
+        "MAE": 9.616,
+        "RMSE": 13.384,
         "R2": -0.121,
-        "skill_vs_persistence": -0.466,
-        "cams_MAE": 9.656,
+        "skill_vs_persistence": -0.463,
+        "cams_MAE": 9.616,
         "skill_vs_cams": 0.0,
         "n_test": 4670,
         "n_folds": 5,
-        "mean_observed": 28.75
+        "mean_observed": 28.76
       }
     },
     "72hr": {
       "Ridge Regression": {
-        "MAE": 9.396,
-        "RMSE": 12.84,
-        "R2": -0.111,
-        "skill_vs_persistence": -0.198,
-        "cams_MAE": 9.507,
-        "skill_vs_cams": 0.012,
+        "MAE": 9.388,
+        "RMSE": 12.831,
+        "R2": -0.114,
+        "skill_vs_persistence": -0.202,
+        "cams_MAE": 9.467,
+        "skill_vs_cams": 0.008,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       },
       "Random Forest": {
-        "MAE": 6.739,
-        "RMSE": 9.959,
+        "MAE": 6.702,
+        "RMSE": 9.94,
         "R2": 0.332,
-        "skill_vs_persistence": 0.141,
-        "cams_MAE": 9.507,
-        "skill_vs_cams": 0.291,
+        "skill_vs_persistence": 0.142,
+        "cams_MAE": 9.467,
+        "skill_vs_cams": 0.292,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       },
       "XGBoost": {
-        "MAE": 6.543,
-        "RMSE": 9.72,
-        "R2": 0.363,
-        "skill_vs_persistence": 0.166,
-        "cams_MAE": 9.507,
-        "skill_vs_cams": 0.312,
+        "MAE": 6.481,
+        "RMSE": 9.713,
+        "R2": 0.362,
+        "skill_vs_persistence": 0.17,
+        "cams_MAE": 9.467,
+        "skill_vs_cams": 0.315,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       },
       "Persistence (baseline)": {
-        "MAE": 7.846,
-        "RMSE": 11.865,
+        "MAE": 7.808,
+        "RMSE": 11.847,
         "R2": 0.051,
         "skill_vs_persistence": 0.0,
-        "cams_MAE": 9.507,
+        "cams_MAE": 9.467,
         "skill_vs_cams": 0.175,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       },
       "Hourly climatology (baseline)": {
-        "MAE": 29.52,
-        "RMSE": 32.124,
-        "R2": -5.955,
-        "skill_vs_persistence": -2.762,
-        "cams_MAE": 9.507,
-        "skill_vs_cams": -2.105,
+        "MAE": 29.514,
+        "RMSE": 32.12,
+        "R2": -5.979,
+        "skill_vs_persistence": -2.78,
+        "cams_MAE": 9.467,
+        "skill_vs_cams": -2.118,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       },
       "CAMS forecast (baseline)": {
-        "MAE": 9.507,
-        "RMSE": 13.164,
-        "R2": -0.168,
+        "MAE": 9.467,
+        "RMSE": 13.135,
+        "R2": -0.167,
         "skill_vs_persistence": -0.212,
-        "cams_MAE": 9.507,
+        "cams_MAE": 9.467,
         "skill_vs_cams": 0.0,
         "n_test": 4594,
         "n_folds": 5,
-        "mean_observed": 28.36
+        "mean_observed": 28.37
       }
     }
   }
