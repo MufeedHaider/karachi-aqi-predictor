@@ -23,6 +23,10 @@ Reporting MAE alone says nothing. These give it meaning:
   CAMS         — what the Copernicus model itself predicts for that hour. This
                  is the interesting one: it is a real operational forecast, so
                  beating it means the model adds something over the physics.
+  seasonal     — "PM2.5 at the target hour equals the most recent measurement
+                 at the same hour of day" (seasonal naive, period 24). The
+                 standard statistical baseline for a series with a strong daily
+                 cycle; persistence ignores the cycle, this one is built on it.
 """
 
 from __future__ import annotations
@@ -35,7 +39,31 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 DEFAULT_FOLDS = [0.45, 0.56, 0.67, 0.78, 0.89]
 
 
-def metrics(y_true, y_pred, persistence, cams=None):
+def seasonal_naive(df, row_index, horizon, period=24):
+    """Seasonal-naive forecast for `horizon` hours ahead, one value per row.
+
+    The prediction for t+h is the measurement at t+h-period*k, with k the
+    smallest integer that puts that hour at or before t. For h <= 24 that is
+    "same hour yesterday"; for h = 30 it is "same hour two days before the
+    target". Only values observable at t are ever used.
+
+    Looked up by timestamp, not by row offset: the feature table has rows
+    dropped where measurements were missing, so row n-24 is not always
+    24 hours earlier.
+    """
+    import math
+
+    import pandas as pd
+
+    k = math.ceil(horizon / period)
+    lag = pd.Timedelta(hours=period * k - horizon)   # at or before t
+    by_time = df.set_index("timestamp")["ground_pm25"]
+    by_time = by_time[~by_time.index.duplicated()]
+    lookup = df.loc[row_index, "timestamp"] - lag
+    return pd.Series(by_time.reindex(lookup).to_numpy(), index=row_index)
+
+
+def metrics(y_true, y_pred, persistence, cams=None, seasonal=None):
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
     mae = mean_absolute_error(y_true, y_pred)
@@ -52,6 +80,14 @@ def metrics(y_true, y_pred, persistence, cams=None):
         cams_mae = mean_absolute_error(y_true, cams)
         out["cams_MAE"] = round(float(cams_mae), 3)
         out["skill_vs_cams"] = round(float(1 - mae / cams_mae), 3) if cams_mae > 0 else None
+    if seasonal is not None:
+        seasonal = np.asarray(seasonal, dtype=float)
+        ok = ~np.isnan(seasonal)
+        if ok.sum() > 0:
+            s_mae = mean_absolute_error(y_true[ok], seasonal[ok])
+            m_mae = mean_absolute_error(y_true[ok], y_pred[ok])
+            out["seasonal_MAE"] = round(float(s_mae), 3)
+            out["skill_vs_seasonal"] = round(float(1 - m_mae / s_mae), 3) if s_mae > 0 else None
     return out
 
 
@@ -63,7 +99,8 @@ def climatology_map(target_hours, values):
 
 
 def rolling_origin(X, y_delta, current, target_ts, fit_predict,
-                   folds=DEFAULT_FOLDS, cams=None, min_test_rows=200):
+                   folds=DEFAULT_FOLDS, cams=None, min_test_rows=200,
+                   seasonal=None):
     """Backtest across seasons.
 
     `fit_predict(X_train, d_train, X_test)` returns predicted *deltas* for the
@@ -72,7 +109,7 @@ def rolling_origin(X, y_delta, current, target_ts, fit_predict,
     """
     n = len(X)
     per_fold = []
-    pooled = {"y": [], "pred": [], "persist": [], "cams": []}
+    pooled = {"y": [], "pred": [], "persist": [], "cams": [], "seasonal": []}
 
     for i, start_frac in enumerate(folds):
         start = int(n * start_frac)
@@ -88,8 +125,12 @@ def rolling_origin(X, y_delta, current, target_ts, fit_predict,
         y_pred = np.clip(np.asarray(pred_delta) + cur_test, 0, None)
 
         fold_cams = None if cams is None else np.asarray(cams.iloc[start:end])
+        fold_seasonal = (
+            None if seasonal is None
+            else np.asarray(seasonal.iloc[start:end], dtype=float)
+        )
 
-        fold = metrics(y_true, y_pred, cur_test, fold_cams)
+        fold = metrics(y_true, y_pred, cur_test, fold_cams, fold_seasonal)
         fold["window"] = (
             f"{target_ts.iloc[start]:%b %d} - {target_ts.iloc[end - 1]:%b %d}"
         )
@@ -102,6 +143,8 @@ def rolling_origin(X, y_delta, current, target_ts, fit_predict,
         pooled["persist"] += list(cur_test)
         if fold_cams is not None:
             pooled["cams"] += list(fold_cams)
+        if fold_seasonal is not None:
+            pooled["seasonal"] += list(fold_seasonal)
 
     if not pooled["y"]:
         return [], {}
@@ -111,6 +154,7 @@ def rolling_origin(X, y_delta, current, target_ts, fit_predict,
         pooled["pred"],
         pooled["persist"],
         pooled["cams"] if pooled["cams"] else None,
+        pooled["seasonal"] if pooled["seasonal"] else None,
     )
     combined["n_test"] = len(pooled["y"])
     combined["n_folds"] = len(per_fold)

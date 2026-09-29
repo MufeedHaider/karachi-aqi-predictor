@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-09-29T23:29:53.776805+00:00",
+  "what": "published forecasts scored against later OpenAQ measurements",
+  "n_forecasts_issued": 26,
+  "n_forecasts_scored": 26,
+  "n_points": 1755,
+  "buckets": {
+    "1-6h": {
+      "n_points": 156,
+      "MAE": 3.638,
+      "cams_MAE": 8.401,
+      "persistence_MAE": 5.098,
+      "skill_vs_cams": 0.567,
+      "skill_vs_persistence": 0.286,
+      "bias": -0.943
+    },
+    "7-12h": {
+      "n_points": 153,
+      "MAE": 5.256,
+      "cams_MAE": 10.502,
+      "persistence_MAE": 7.024,
+      "skill_vs_cams": 0.5,
+      "skill_vs_persistence": 0.252,
+      "bias": -2.553
+    },
+    "13-24h": {
+      "n_points": 300,
+      "MAE": 4.241,
+      "cams_MAE": 6.485,
+      "persistence_MAE": 5.442,
+      "skill_vs_cams": 0.346,
+      "skill_vs_persistence": 0.221,
+      "bias": -0.167
+    },
+    "25-48h": {
+      "n_points": 585,
+      "MAE": 4.721,
+      "cams_MAE": 8.772,
+      "persistence_MAE": 6.686,
+      "skill_vs_cams": 0.462,
+      "skill_vs_persistence": 0.294,
+      "bias": -1.053
+    },
+    "49-72h": {
+      "n_points": 561,
+      "MAE": 5.298,
+      "cams_MAE": 9.686,
+      "persistence_MAE": 8.138,
+      "skill_vs_cams": 0.453,
+      "skill_vs_persistence": 0.349,
+      "bias": -1.945
+    }
+  },
+  "median_publish_latency_hours": 5.2,
+  "period": "2026-09-04 to 2026-09-29",
+  "overall": {
+    "n_points": 1755,
+    "MAE": 4.774,
+    "cams_MAE": 8.791,
+    "persistence_MAE": 6.826,
+    "skill_vs_cams": 0.457,
+    "skill_vs_persistence": 0.301,
+    "bias": -1.308
+  }
+}

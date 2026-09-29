@@ -16,6 +16,8 @@ jobs:
   retrain:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
     steps:
       - name: Checkout
@@ -54,11 +56,31 @@ jobs:
       - name: Compare algorithms
         run: python src/train_model.py
 
-      - name: Fit horizon models and forecast
+      - name: Fit horizon models, intervals and forecast
         run: python src/forecast_model.py
+
+      # Blocks the publish if the new model is worse than the one it replaces.
+      # Tests stop a broken pipeline; this stops a worse one.
+      - name: Accuracy gate
+        id: gate
+        env:
+          GATE_OVERRIDE: ${{ vars.GATE_OVERRIDE }}
+        run: python src/accuracy_gate.py
 
       - name: Update SHAP explainability
         run: python src/explain_model.py
+
+      - name: Input drift report
+        run: python src/drift.py
+
+      # Scores every forecast published so far against what was later measured.
+      - name: Score live track record
+        run: python src/live_scoring.py
+
+      - name: Evaluate forecast analyst (only if a Gemini key is configured)
+        if: ${{ env.GEMINI_API_KEY != '' }}
+        continue-on-error: true
+        run: python src/run_analyst_evals.py
 
       - name: Commit updated artefacts
         run: |
@@ -68,10 +90,29 @@ jobs:
                   data/ground_history.csv \
                   models/all_results.json models/horizon_results.json \
                   models/best_model_name.txt models/shap_importance.csv \
-                  models/shap_importance.png models/shap_summary.png
+                  models/shap_importance.png models/shap_summary.png \
+                  data/forecast_archive.csv models/live_results.json \
+                  models/registry.jsonl models/gate_report.json \
+                  models/drift_report.json
+          [ -f models/analyst_eval.json ] && git add models/analyst_eval.json
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
             git commit -m "Auto-retrain: $(date -u '+%Y-%m-%d %H:%M UTC')"
             git push
           fi
+
+      # When the gate blocks, keep yesterday's forecast live but still record
+      # the rejected model in the registry, so the history has no gaps.
+      - name: Record blocked model
+        if: ${{ failure() && steps.gate.outcome == 'failure' }}
+        run: |
+          cp models/registry.jsonl /tmp/registry.jsonl
+          cp models/gate_report.json /tmp/gate_report.json
+          git checkout -- .
+          cp /tmp/registry.jsonl models/registry.jsonl
+          cp /tmp/gate_report.json models/gate_report.json
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/registry.jsonl models/gate_report.json
+          git commit -m "Gate blocked retrain: $(date -u '+%Y-%m-%d %H:%M UTC')" && git push

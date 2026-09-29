@@ -3,6 +3,7 @@ Karachi AQI dashboard.
 
 Every number on these pages is read from what the pipeline writes:
 models/all_results.json, models/horizon_results.json, models/shap_importance.csv,
+models/live_results.json, models/gate_report.json, models/drift_report.json,
 data/forecast_72hr.csv and data/recent_history.csv. Nothing is hardcoded.
 
 That is a change from an earlier version, which carried literal copies of the
@@ -75,6 +76,10 @@ hist_df = load_csv("recent_history.csv")
 results = load_json("all_results.json")
 horizons = load_json("horizon_results.json")
 shap_df = load_shap()
+live = load_json("live_results.json")
+gate = load_json("gate_report.json")
+drift = load_json("drift_report.json")
+has_band = fc_df is not None and {"pm2_5_p10", "pm2_5_p90"} <= set(fc_df.columns)
 
 if fc_df is None or hist_df is None:
     st.error(
@@ -117,7 +122,7 @@ with brand:
     st.markdown("### 🌫️ Karachi AQI")
 with nav:
     page = st.radio(
-        "Navigation", ["Dashboard", "Forecast", "Analysis"],
+        "Navigation", ["Dashboard", "Forecast", "Track record", "Analysis"],
         horizontal=True, label_visibility="collapsed", key="nav",
     )
 with clock:
@@ -308,10 +313,19 @@ elif page == "Forecast":
 
     st.divider()
     fig = go.Figure()
+    if has_band:
+        fig.add_trace(go.Scatter(
+            x=fc_df["timestamp"], y=fc_df["pm2_5_p90"], mode="lines",
+            line=dict(width=0), showlegend=False, hoverinfo="skip",
+        ))
+        fig.add_trace(go.Scatter(
+            x=fc_df["timestamp"], y=fc_df["pm2_5_p10"], mode="lines",
+            line=dict(width=0), fill="tonexty", fillcolor="rgba(96,165,250,0.18)",
+            name="80% range", hovertemplate="80% range %{y:.1f}<extra></extra>",
+        ))
     fig.add_trace(go.Scatter(
         x=fc_df["timestamp"], y=fc_df["pm2_5_predicted"], mode="lines",
         name="This model", line=dict(color="#60a5fa", width=2.5),
-        fill="tozeroy", fillcolor="rgba(59,130,246,0.08)",
     ))
     if "cams_pm2_5" in fc_df.columns:
         fig.add_trace(go.Scatter(
@@ -341,6 +355,86 @@ elif page == "Forecast":
         table[cols].rename(columns={"aqi_category": "Category"}),
         width="stretch", hide_index=True, height=420,
     )
+
+# ═════════════════════════════════════════════════════════════════════════════
+elif page == "Track record":
+    st.subheader("✅ Live track record")
+    st.caption("Every forecast this dashboard published, checked against what the monitors later measured.")
+
+    if live and live.get("overall"):
+        o = live["overall"]
+        c = st.columns(4)
+        c[0].metric("Live error (MAE)", f"{o['MAE']:.2f} µg/m³")
+        c[1].metric("vs CAMS", f"{o['skill_vs_cams']:+.0%}",
+                    help=f"CAMS MAE {o['cams_MAE']:.2f} on the same hours")
+        c[2].metric("vs persistence", f"{o['skill_vs_persistence']:+.0%}",
+                    help=f"Persistence MAE {o['persistence_MAE']:.2f}")
+        c[3].metric("Forecasts scored", f"{live['n_forecasts_scored']}",
+                    f"{live['n_points']:,} hourly points", delta_color="off")
+        st.caption(f"{live.get('period', '')} · forecasts go live about "
+                   f"{live.get('median_publish_latency_hours', '—')} h after their latest measurement")
+        buckets = live.get("buckets", {})
+        if buckets:
+            b = pd.DataFrame(buckets).T.reset_index().rename(columns={"index": "lead"})
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=b["lead"], y=b["MAE"], name="This model",
+                                 marker_color="#60a5fa"))
+            fig.add_trace(go.Bar(x=b["lead"], y=b["cams_MAE"], name="CAMS",
+                                 marker_color="#f87171"))
+            fig.add_trace(go.Bar(x=b["lead"], y=b["persistence_MAE"], name="Persistence",
+                                 marker_color="#94a3b8"))
+            fig.update_layout(height=300, barmode="group",
+                              yaxis=dict(gridcolor=GRID, title="MAE µg/m³"),
+                              legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=1.15),
+                              **PLOT)
+            st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+        if live.get("interval_80"):
+            iv = live["interval_80"]
+            st.caption(f"80% range held the real value {iv['coverage']:.0%} of the time (target 80%).")
+    else:
+        st.info("No published forecasts have been scored yet.")
+
+    st.divider()
+    left, right = st.columns(2)
+    with left:
+        st.subheader("🚦 Last retrain")
+        if gate:
+            st.markdown(f"Accuracy gate: **{gate['decision'].upper()}**")
+            rows = [{"check": c["name"], "result": "pass" if c["passed"] else "FAIL",
+                     "detail": c["detail"]} for c in gate["checks"] + gate.get("warnings", [])]
+            st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+        else:
+            st.caption("No gate report yet.")
+    with right:
+        st.subheader("🌡️ Input drift")
+        if drift:
+            st.markdown(f"Last 7 days vs {drift['reference']}: **{drift['overall']}**")
+            d = pd.DataFrame(drift["features"]).T.reset_index().rename(columns={"index": "input"})
+            keep = [c for c in ["input", "level", "out_of_range", "shift_sd"] if c in d.columns]
+            st.dataframe(d[keep], hide_index=True, width="stretch")
+        else:
+            st.caption("No drift report yet.")
+
+    st.divider()
+    st.subheader("💬 Ask about the forecast")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    try:
+        api_key = api_key or st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        pass
+    if not api_key:
+        st.caption("Set GEMINI_API_KEY in the app's secrets to enable questions.")
+    else:
+        question = st.text_input("Ask in English, Urdu or Roman Urdu",
+                                 placeholder="Aaj raat hawa kaisi hogi?")
+        if question:
+            from analyst import GeminiLLM, ask
+
+            with st.spinner("Checking the forecast..."):
+                answer = ask(question, llm=GeminiLLM(api_key=api_key))
+            st.markdown(answer.text)
+            st.caption("✓ Every number checked against the forecast data" if answer.grounded
+                       else "Answer withheld: could not be verified")
 
 # ═════════════════════════════════════════════════════════════════════════════
 elif page == "Analysis":

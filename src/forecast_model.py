@@ -48,13 +48,19 @@ import xgboost as xgb
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from aqi import aqi_from_pm25, category  # noqa: E402
-from evaluation import rolling_origin  # noqa: E402
+from evaluation import DEFAULT_FOLDS, rolling_origin, seasonal_naive  # noqa: E402
 from feature_engineering import (  # noqa: E402
     MODEL_FEATURES,
     WEATHER_COLS,
     build_supervised,
     train_test_split_index,
 )
+from intervals import backtest_intervals, fit_interval_model  # noqa: E402
+from live_scoring import append_forecast  # noqa: E402
+
+# Intervals double the number of models fitted. Set INTERVALS=0 to skip them
+# for a quick local run; CI always fits them.
+WITH_INTERVALS = os.environ.get("INTERVALS", "1") != "0"
 
 MAX_HORIZON = 72
 REPORT_HORIZONS = [1, 3, 6, 12, 24, 48, 72]
@@ -83,7 +89,7 @@ def fit_all_horizons(df, backtest_horizons=REPORT_HORIZONS):
     from rolling-origin folds, so they describe genuinely unseen periods rather
     than the data the shipped model was fitted on.
     """
-    models, metrics = {}, {}
+    models, metrics, interval_models, interval_metrics = {}, {}, {}, {}
 
     for h in range(1, MAX_HORIZON + 1):
         X, y_delta, current, target_ts = build_supervised(df, h)
@@ -97,16 +103,27 @@ def fit_all_horizons(df, backtest_horizons=REPORT_HORIZONS):
             per_fold, combined = rolling_origin(
                 X, y_delta, current, target_ts,
                 fit_predict, cams=X["fut_cams_pm25"],
+                seasonal=seasonal_naive(df, X.index, h),
             )
             combined["horizon_hours"] = h
             combined["per_fold"] = per_fold
             metrics[h] = combined
 
+            if WITH_INTERVALS:
+                i_folds, i_combined = backtest_intervals(
+                    X, y_delta, current, target_ts, DEFAULT_FOLDS
+                )
+                i_combined["per_fold"] = i_folds
+                interval_metrics[h] = i_combined
+
         production = make_model()
         production.fit(X, y_delta)
         models[h] = production
 
-    return models, metrics
+        if WITH_INTERVALS:
+            interval_models[h] = fit_interval_model(X, y_delta, current)
+
+    return models, metrics, interval_models, interval_metrics
 
 
 def _aligned_future(path, anchor, columns):
@@ -130,7 +147,7 @@ def _aligned_future(path, anchor, columns):
     return frame.set_index("horizon")[available] if not frame.empty else None
 
 
-def forecast_from_latest(models, df):
+def forecast_from_latest(models, df, interval_models=None):
     """Produce the live 1-72 hour forecast from the most recent measured hour."""
     latest = df.iloc[-1]
     anchor = pd.to_datetime(latest["timestamp"])
@@ -174,16 +191,21 @@ def forecast_from_latest(models, df):
         pm25 = max(0.0, current + float(models[h].predict(X)[0]))
         aqi = aqi_from_pm25(pm25)
 
-        rows.append(
-            {
-                "timestamp": target_ts,
-                "horizon_hour": h,
-                "pm2_5_predicted": round(pm25, 2),
-                "aqi_predicted": aqi,
-                "aqi_category": category(aqi),
-                "cams_pm2_5": round(feat["fut_cams_pm25"], 2),
-            }
-        )
+        row = {
+            "timestamp": target_ts,
+            "horizon_hour": h,
+            "pm2_5_predicted": round(pm25, 2),
+            "aqi_predicted": aqi,
+            "aqi_category": category(aqi),
+            "cams_pm2_5": round(feat["fut_cams_pm25"], 2),
+        }
+        if interval_models and h in interval_models:
+            lo, hi = interval_models[h].predict(X, [current])
+            # The point forecast comes from a different model, so keep it
+            # inside its own band rather than publish a range that excludes it.
+            row["pm2_5_p10"] = round(min(float(lo[0]), pm25), 2)
+            row["pm2_5_p90"] = round(max(float(hi[0]), pm25), 2)
+        rows.append(row)
 
     return pd.DataFrame(rows), degraded
 
@@ -198,7 +220,7 @@ def main():
 
     print(f"Fitting {MAX_HORIZON} direct models and backtesting "
           f"{len(REPORT_HORIZONS)} of them...")
-    models, metrics = fit_all_horizons(df)
+    models, metrics, interval_models, interval_metrics = fit_all_horizons(df)
 
     print("\nRolling-origin backtest (every season tested):")
     print(f"  {'lead':>6}{'MAE':>8}{'persist':>9}{'CAMS':>8}"
@@ -213,11 +235,24 @@ def main():
 
     mean_cams = float(np.mean([metrics[h]["skill_vs_cams"] for h in metrics]))
     mean_persist = float(np.mean([metrics[h]["skill_vs_persistence"] for h in metrics]))
+    seasonal_skills = [metrics[h].get("skill_vs_seasonal") for h in metrics]
+    seasonal_skills = [v for v in seasonal_skills if v is not None]
+    mean_seasonal = float(np.mean(seasonal_skills)) if seasonal_skills else None
     print(f"\n  Mean skill vs persistence: {mean_persist:.1%}")
     print(f"  Mean skill vs CAMS       : {mean_cams:.1%}")
+    if mean_seasonal is not None:
+        print(f"  Mean skill vs seasonal   : {mean_seasonal:.1%}")
 
-    forecast_df, degraded = forecast_from_latest(models, df)
+    if interval_metrics:
+        print("\n80% prediction interval (conformalised quantile regression):")
+        print(f"  {'lead':>6}{'coverage':>10}{'width':>8}")
+        for h in sorted(interval_metrics):
+            m = interval_metrics[h]
+            print(f"  {str(h) + 'h':>6}{m['coverage']:>10.1%}{m['mean_width']:>8.1f}")
+
+    forecast_df, degraded = forecast_from_latest(models, df, interval_models)
     forecast_df.to_csv("data/forecast_72hr.csv", index=False)
+    append_forecast(forecast_df)
 
     if degraded:
         print(f"\n  WARNING: no live {' or '.join(degraded)} forecast available; "
@@ -249,6 +284,13 @@ def main():
                 "degraded_inputs": degraded,
                 "mean_skill_vs_persistence": round(mean_persist, 3),
                 "mean_skill_vs_cams": round(mean_cams, 3),
+                "mean_skill_vs_seasonal": (
+                    round(mean_seasonal, 3) if mean_seasonal is not None else None
+                ),
+                "intervals": {
+                    str(h): {k: v for k, v in interval_metrics[h].items() if k != "per_fold"}
+                    for h in sorted(interval_metrics)
+                },
                 "horizons": {
                     str(h): {k: v for k, v in metrics[h].items() if k != "per_fold"}
                     for h in sorted(metrics)
@@ -263,6 +305,9 @@ def main():
 
     with open("models/horizon_models.pkl", "wb") as f:
         pickle.dump(models, f)
+    if interval_models:
+        with open("models/interval_models.pkl", "wb") as f:
+            pickle.dump(interval_models, f)
     with open("models/feature_cols.pkl", "wb") as f:
         pickle.dump(MODEL_FEATURES, f)
 

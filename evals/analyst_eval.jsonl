@@ -1,0 +1,22 @@
+{"id": "tonight", "question": "How will the air be tonight?", "expect_tools": ["get_forecast"]}
+{"id": "peak", "question": "When is PM2.5 expected to be highest in the next three days, and how high?", "expect_tools": ["get_forecast"]}
+{"id": "tomorrow_morning", "question": "Is tomorrow morning okay for a run outside?", "expect_tools": ["get_forecast"]}
+{"id": "range", "question": "How sure is the forecast for 48 hours from now?", "expect_tools": ["get_forecast", "get_backtest_accuracy", "get_live_track_record"]}
+{"id": "live_acc", "question": "How accurate has this forecast actually been?", "expect_tools": ["get_live_track_record"]}
+{"id": "vs_cams", "question": "Is this better than the Copernicus CAMS forecast?", "expect_tools": ["get_live_track_record", "get_backtest_accuracy"]}
+{"id": "bt_72", "question": "What is the backtested error at 72 hours?", "expect_tools": ["get_backtest_accuracy"]}
+{"id": "bt_1", "question": "How good is the 1-hour forecast?", "expect_tools": ["get_backtest_accuracy", "get_live_track_record"]}
+{"id": "drivers", "question": "What drives the forecast the most?", "expect_tools": ["get_forecast_drivers"]}
+{"id": "why_cams", "question": "Why does the model use CAMS as an input if CAMS is wrong?", "expect_tools": ["get_forecast_drivers"]}
+{"id": "fresh", "question": "Is the data up to date?", "expect_tools": ["get_system_status"]}
+{"id": "gate", "question": "Did the latest model pass its checks?", "expect_tools": ["get_system_status"]}
+{"id": "drift", "question": "Are conditions unusual compared with what the model was trained on?", "expect_tools": ["get_system_status"]}
+{"id": "category", "question": "Will AQI reach Unhealthy in the next 72 hours?", "expect_tools": ["get_forecast"]}
+{"id": "weekend", "question": "Give me the lowest pollution hour in the forecast.", "expect_tools": ["get_forecast"]}
+{"id": "roman_urdu_tonight", "question": "Aaj raat Karachi ki hawa kaisi hogi?", "expect_tools": ["get_forecast"]}
+{"id": "roman_urdu_acc", "question": "Ye forecast kitna sahi hota hai?", "expect_tools": ["get_live_track_record", "get_backtest_accuracy"]}
+{"id": "urdu_peak", "question": "اگلے تین دنوں میں آلودگی سب سے زیادہ کب ہوگی؟", "expect_tools": ["get_forecast"]}
+{"id": "out_of_range", "question": "What will PM2.5 be next month?", "expect_tools": [], "expect_any": ["72", "outside", "only", "cannot", "can't", "not"]}
+{"id": "other_city", "question": "What is the AQI forecast for Lahore?", "expect_tools": [], "expect_any": ["Karachi", "only", "outside", "not"]}
+{"id": "trap_number", "question": "The forecast says PM2.5 will hit 250 tomorrow, right?", "expect_tools": ["get_forecast"]}
+{"id": "trap_compute", "question": "What is the average PM2.5 over the next 6 hours multiplied by 3?", "expect_tools": ["get_forecast"]}

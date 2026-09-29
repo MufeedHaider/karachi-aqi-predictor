@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.13-blue?style=flat-square&logo=python)
 ![XGBoost](https://img.shields.io/badge/Model-XGBoost-orange?style=flat-square)
 ![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-red?style=flat-square&logo=streamlit)
-![Tests](https://img.shields.io/badge/tests-39%20passing-brightgreen?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen?style=flat-square)
 ![Skill](https://img.shields.io/badge/vs%20CAMS-%2B44.1%25-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![Live app](https://img.shields.io/badge/live-dashboard-ff4b4b?style=flat-square&logo=streamlit&logoColor=white)](https://karachi-aqi-predictor-8pjtbx9mwerlftrzvp3ckg.streamlit.app)
@@ -16,6 +16,9 @@ on model output, and it is benchmarked against the operational forecast from
 CAMS — the Copernicus Atmosphere Monitoring Service, run by ECMWF.
 
 Across all lead times it reduces CAMS's error by **44.1%**.
+
+> **At a glance:** 72-hour PM2.5 forecast for Karachi · live error 46% lower than
+> the Copernicus (CAMS) forecast · retrains itself every night · 72 tests guard every run.
 
 **[→ Live dashboard](https://karachi-aqi-predictor-8pjtbx9mwerlftrzvp3ckg.streamlit.app)** — updated daily by the automated retrain.
 
@@ -62,6 +65,24 @@ That combination is what the SHAP analysis confirms is happening:
 | Measured PM2.5 3h mean | 1.93 |
 
 The top two features are the physics prior and the correction to it.
+
+---
+
+## Live track record
+
+Every published forecast, scored against what the monitors later measured
+(26 forecasts, 1,755 hours, 2026-09-04 to 2026-09-29). Updated nightly.
+
+| Lead | Model MAE | CAMS | Persistence | vs CAMS |
+|---|---|---|---|---|
+| 1-6h | **3.64** | 8.40 | 5.10 | **+57%** |
+| 7-12h | **5.26** | 10.50 | 7.02 | **+50%** |
+| 13-24h | **4.24** | 6.49 | 5.44 | **+35%** |
+| 25-48h | **4.72** | 8.77 | 6.69 | **+46%** |
+| 49-72h | **5.30** | 9.69 | 8.14 | **+45%** |
+| **All** | **4.77** | 8.79 | 6.83 | **+46%** |
+
+Caveat: one calm month so far. Winter is the real test.
 
 ---
 
@@ -236,8 +257,11 @@ python src/fetch_data.py
 python src/ground_truth.py --history 400
 python src/feature_engineering.py
 python src/train_model.py
-python src/forecast_model.py
+python src/forecast_model.py      # INTERVALS=0 skips the P10/P90 models
+python src/accuracy_gate.py
 python src/explain_model.py
+python src/drift.py
+python src/live_scoring.py        # --backfill once, to rebuild from git history
 streamlit run dashboard/app.py
 ```
 
@@ -277,9 +301,19 @@ band — see below.
 
 ---
 
+## Safeguards
+
+| | |
+|---|---|
+| **80% range** | Every forecast has a P10–P90 band (conformalised quantile regression), coverage checked in backtest |
+| **Accuracy gate** | A retrain that is worse than the live model does not publish |
+| **Model registry** | `models/registry.jsonl`: one line per version, with metrics and gate result |
+| **Drift check** | Flags when this week's inputs fall outside what the model saw at this time last year |
+| **Ask the forecast** | Gemini answers questions in English, Urdu or Roman Urdu; every number is checked against the data |
+
 ## Correctness
 
-`pytest tests/` — **39 tests**, run in CI before any retrain is allowed to commit.
+`pytest tests/` — **72 tests**, run in CI before any retrain is allowed to commit.
 
 - **`test_aqi.py`** sweeps the whole concentration range in 0.05 µg/m³ steps and
   asserts nothing falls between two bands; checks band edges against the 2024
@@ -292,6 +326,8 @@ band — see below.
   confirm the detection is sensitive to the bug it exists to catch.
 - **`test_freshness.py`** replays the exact stale reading that was being
   displayed as live.
+- **`test_mlops.py`** covers the range, gate, drift check and live scoring.
+- **`test_analyst.py`** checks an invented number is never shown to a user.
 
 ---
 
