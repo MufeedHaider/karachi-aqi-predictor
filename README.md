@@ -6,7 +6,7 @@
 ![XGBoost](https://img.shields.io/badge/Model-XGBoost-orange?style=flat-square)
 ![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-red?style=flat-square&logo=streamlit)
 ![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen?style=flat-square)
-![Skill](https://img.shields.io/badge/vs%20CAMS-%2B44.1%25-brightgreen?style=flat-square)
+![Skill](https://img.shields.io/badge/vs%20CAMS-%2B46%25%20live-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![Live app](https://img.shields.io/badge/live-dashboard-ff4b4b?style=flat-square&logo=streamlit&logoColor=white)](https://karachi-aqi-predictor-8pjtbx9mwerlftrzvp3ckg.streamlit.app)
 
@@ -15,7 +15,7 @@ ahead. It trains on **measurements from the city's ground monitor network**, not
 on model output, and it is benchmarked against the operational forecast from
 CAMS — the Copernicus Atmosphere Monitoring Service, run by ECMWF.
 
-Across all lead times it reduces CAMS's error by **44.1%**.
+Across all lead times it reduces CAMS's error by **about 43%** in backtest and **46%** on live published forecasts.
 
 > **At a glance:** 72-hour PM2.5 forecast for Karachi · live error 46% lower than
 > the Copernicus (CAMS) forecast · retrains itself every night · 72 tests guard every run.
@@ -108,7 +108,7 @@ accurate. That split flattered the model by 20% and never tested December once.
 | 48 hours | **6.12** | 7.55 | 9.60 | +18.9% | **+36.2%** | 0.492 |
 | 72 hours | **6.51** | 7.84 | 9.51 | +17.0% | **+31.5%** | 0.367 |
 
-**Mean skill: +44.1% against CAMS, +18.5% against persistence.**
+**Mean skill at the time of the rebuild: +44.1% against CAMS, +18.5% against persistence.** The nightly retrain updates these; the current figures are on the dashboard.
 
 Two baselines, because each answers a different question. Persistence ("nothing
 changes") is hard to beat at short leads on a smooth hourly series — it is the
