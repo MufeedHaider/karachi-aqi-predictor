@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T00:58:37.459164+00:00",
+  "generated_at": "2026-09-30T04:58:48.504220+00:00",
   "forecast_issued_at": "2026-09-29 23:00:00",
   "target": "measured PM2.5 (OpenAQ ground monitors, city median)",
   "evaluation": "rolling-origin backtest, 5 folds",
