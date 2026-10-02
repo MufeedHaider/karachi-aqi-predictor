@@ -1,58 +1,58 @@
 {
-  "generated_at": "2026-10-01T05:11:44.307448+00:00",
+  "generated_at": "2026-10-02T05:01:25.356345+00:00",
   "recent_window": "last 7 days",
   "reference": "all earlier data",
   "n_recent": 168,
-  "overall": "moderate",
+  "overall": "major",
   "features": {
     "ground_pm25": {
       "level": "moderate",
       "out_of_range": 0.0,
-      "shift_sd": 0.58,
-      "reference_mean": 46.4,
-      "recent_mean": 26.28
+      "shift_sd": 0.6,
+      "reference_mean": 46.41,
+      "recent_mean": 25.53
     },
     "cams_pm25": {
       "level": "moderate",
-      "out_of_range": 0.06,
-      "shift_sd": 0.26,
-      "reference_mean": 28.98,
-      "recent_mean": 25.67
+      "out_of_range": 0.083,
+      "shift_sd": 0.18,
+      "reference_mean": 29.01,
+      "recent_mean": 26.75
     },
     "cams_gap": {
       "level": "moderate",
       "out_of_range": 0.054,
-      "shift_sd": 0.6,
-      "reference_mean": 17.42,
-      "recent_mean": 0.61
+      "shift_sd": 0.67,
+      "reference_mean": 17.39,
+      "recent_mean": -1.22
     },
     "wind_speed": {
       "level": "stable",
       "out_of_range": 0.006,
-      "shift_sd": 0.42,
+      "shift_sd": 0.36,
       "reference_mean": 10.95,
-      "recent_mean": 12.86
+      "recent_mean": 12.56
     },
     "humidity": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.48,
-      "reference_mean": 65.0,
-      "recent_mean": 74.76
+      "shift_sd": 0.44,
+      "reference_mean": 65.01,
+      "recent_mean": 73.93
     },
     "temperature": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.45,
+      "shift_sd": 0.4,
       "reference_mean": 26.34,
-      "recent_mean": 28.43
+      "recent_mean": 28.2
     },
     "cams_pm10": {
-      "level": "moderate",
-      "out_of_range": 0.113,
-      "shift_sd": 0.83,
-      "reference_mean": 53.37,
-      "recent_mean": 76.66
+      "level": "major",
+      "out_of_range": 0.143,
+      "shift_sd": 1.11,
+      "reference_mean": 53.43,
+      "recent_mean": 84.46
     }
   }
 }
