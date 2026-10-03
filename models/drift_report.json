@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T05:01:25.356345+00:00",
+  "generated_at": "2026-10-03T04:44:23.614465+00:00",
   "recent_window": "last 7 days",
   "reference": "all earlier data",
   "n_recent": 168,
@@ -8,51 +8,51 @@
     "ground_pm25": {
       "level": "moderate",
       "out_of_range": 0.0,
-      "shift_sd": 0.6,
-      "reference_mean": 46.41,
-      "recent_mean": 25.53
+      "shift_sd": 0.61,
+      "reference_mean": 46.4,
+      "recent_mean": 25.22
     },
     "cams_pm25": {
       "level": "moderate",
-      "out_of_range": 0.083,
-      "shift_sd": 0.18,
-      "reference_mean": 29.01,
-      "recent_mean": 26.75
+      "out_of_range": 0.071,
+      "shift_sd": 0.07,
+      "reference_mean": 29.02,
+      "recent_mean": 28.15
     },
     "cams_gap": {
       "level": "moderate",
-      "out_of_range": 0.054,
-      "shift_sd": 0.67,
-      "reference_mean": 17.39,
-      "recent_mean": -1.22
+      "out_of_range": 0.042,
+      "shift_sd": 0.73,
+      "reference_mean": 17.38,
+      "recent_mean": -2.94
     },
     "wind_speed": {
       "level": "stable",
       "out_of_range": 0.006,
-      "shift_sd": 0.36,
-      "reference_mean": 10.95,
-      "recent_mean": 12.56
+      "shift_sd": 0.22,
+      "reference_mean": 10.96,
+      "recent_mean": 11.96
     },
     "humidity": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.44,
-      "reference_mean": 65.01,
-      "recent_mean": 73.93
+      "shift_sd": 0.42,
+      "reference_mean": 65.0,
+      "recent_mean": 73.57
     },
     "temperature": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.4,
+      "shift_sd": 0.37,
       "reference_mean": 26.34,
-      "recent_mean": 28.2
+      "recent_mean": 28.07
     },
     "cams_pm10": {
       "level": "major",
-      "out_of_range": 0.143,
-      "shift_sd": 1.11,
-      "reference_mean": 53.43,
-      "recent_mean": 84.46
+      "out_of_range": 0.119,
+      "shift_sd": 1.31,
+      "reference_mean": 53.46,
+      "recent_mean": 90.0
     }
   }
 }
