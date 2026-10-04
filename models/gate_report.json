@@ -4,59 +4,59 @@
     {
       "name": "beats CAMS",
       "passed": true,
-      "detail": "mean skill vs CAMS +42.8%"
+      "detail": "mean skill vs CAMS +42.0%"
     },
     {
       "name": "beats persistence",
       "passed": true,
-      "detail": "mean skill vs persistence +17.1%"
+      "detail": "mean skill vs persistence +15.4%"
     },
     {
       "name": "no regression vs CAMS",
       "passed": true,
-      "detail": "+43.0% -> +42.8% (drop +0.2%, limit 5%)"
+      "detail": "+42.8% -> +42.0% (drop +0.8%, limit 5%)"
     },
     {
       "name": "no regression at 24h",
       "passed": true,
-      "detail": "MAE 4.85 -> 4.88 (+0.7%, limit 15%)"
+      "detail": "MAE 4.88 -> 5.01 (+2.7%, limit 15%)"
     }
   ],
   "warnings": [
     {
       "name": "interval coverage 1h",
       "passed": true,
-      "detail": "82.4% (target 80%, warn outside 70%-90%)"
+      "detail": "83.9% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 3h",
       "passed": true,
-      "detail": "83.5% (target 80%, warn outside 70%-90%)"
+      "detail": "84.3% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 6h",
       "passed": true,
-      "detail": "85.8% (target 80%, warn outside 70%-90%)"
+      "detail": "83.1% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 12h",
       "passed": true,
-      "detail": "82.8% (target 80%, warn outside 70%-90%)"
+      "detail": "81.0% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 24h",
       "passed": true,
-      "detail": "83.0% (target 80%, warn outside 70%-90%)"
+      "detail": "81.8% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 48h",
       "passed": true,
-      "detail": "82.5% (target 80%, warn outside 70%-90%)"
+      "detail": "81.3% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 72h",
       "passed": true,
-      "detail": "84.6% (target 80%, warn outside 70%-90%)"
+      "detail": "84.4% (target 80%, warn outside 70%-90%)"
     }
   ]
 }
