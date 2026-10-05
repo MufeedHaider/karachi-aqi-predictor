@@ -1,70 +1,70 @@
 {
-  "generated_at": "2026-10-04T05:15:45.872188+00:00",
+  "generated_at": "2026-10-05T05:00:30.201769+00:00",
   "what": "published forecasts scored against later OpenAQ measurements",
-  "n_forecasts_issued": 31,
-  "n_forecasts_scored": 31,
-  "n_points": 2115,
+  "n_forecasts_issued": 32,
+  "n_forecasts_scored": 32,
+  "n_points": 2184,
   "buckets": {
     "1-6h": {
-      "n_points": 186,
-      "MAE": 3.453,
-      "cams_MAE": 7.689,
-      "persistence_MAE": 5.461,
-      "skill_vs_cams": 0.551,
-      "skill_vs_persistence": 0.368,
-      "bias": -0.72
+      "n_points": 192,
+      "MAE": 3.402,
+      "cams_MAE": 7.533,
+      "persistence_MAE": 5.452,
+      "skill_vs_cams": 0.548,
+      "skill_vs_persistence": 0.376,
+      "bias": -0.652
     },
     "7-12h": {
-      "n_points": 183,
-      "MAE": 5.136,
-      "cams_MAE": 10.175,
-      "persistence_MAE": 7.154,
-      "skill_vs_cams": 0.495,
-      "skill_vs_persistence": 0.282,
-      "bias": -1.758
+      "n_points": 188,
+      "MAE": 5.187,
+      "cams_MAE": 10.172,
+      "persistence_MAE": 7.281,
+      "skill_vs_cams": 0.49,
+      "skill_vs_persistence": 0.288,
+      "bias": -1.685
     },
     "13-24h": {
-      "n_points": 360,
-      "MAE": 4.242,
-      "cams_MAE": 7.366,
-      "persistence_MAE": 5.66,
+      "n_points": 372,
+      "MAE": 4.215,
+      "cams_MAE": 7.317,
+      "persistence_MAE": 5.785,
       "skill_vs_cams": 0.424,
-      "skill_vs_persistence": 0.251,
-      "bias": -0.353
+      "skill_vs_persistence": 0.271,
+      "bias": -0.289
     },
     "25-48h": {
-      "n_points": 705,
-      "MAE": 4.846,
-      "cams_MAE": 8.873,
-      "persistence_MAE": 6.811,
-      "skill_vs_cams": 0.454,
-      "skill_vs_persistence": 0.289,
-      "bias": -0.415
+      "n_points": 728,
+      "MAE": 4.81,
+      "cams_MAE": 8.751,
+      "persistence_MAE": 6.917,
+      "skill_vs_cams": 0.45,
+      "skill_vs_persistence": 0.305,
+      "bias": -0.413
     },
     "49-72h": {
-      "n_points": 681,
-      "MAE": 5.228,
-      "cams_MAE": 9.341,
-      "persistence_MAE": 7.983,
-      "skill_vs_cams": 0.44,
-      "skill_vs_persistence": 0.345,
-      "bias": -1.22
+      "n_points": 704,
+      "MAE": 5.231,
+      "cams_MAE": 9.213,
+      "persistence_MAE": 8.171,
+      "skill_vs_cams": 0.432,
+      "skill_vs_persistence": 0.36,
+      "bias": -1.073
     }
   },
-  "median_publish_latency_hours": 5.2,
-  "period": "2026-09-04 to 2026-10-04",
+  "median_publish_latency_hours": 5.3,
+  "period": "2026-09-04 to 2026-10-05",
   "overall": {
-    "n_points": 2115,
-    "MAE": 4.769,
-    "cams_MAE": 8.776,
-    "persistence_MAE": 6.904,
-    "skill_vs_cams": 0.457,
-    "skill_vs_persistence": 0.309,
-    "bias": -0.807
+    "n_points": 2184,
+    "MAE": 4.753,
+    "cams_MAE": 8.671,
+    "persistence_MAE": 7.031,
+    "skill_vs_cams": 0.452,
+    "skill_vs_persistence": 0.324,
+    "bias": -0.735
   },
   "interval_80": {
-    "n_points": 243,
-    "coverage": 0.807,
-    "mean_width": 14.59
+    "n_points": 312,
+    "coverage": 0.811,
+    "mean_width": 15.0
   }
 }
