@@ -39,10 +39,17 @@ def judge(case, answer):
     }
 
 
-def run(llm=None, cases=None):
+# Space questions out so a free-tier key stays under its per-minute limit.
+DELAY_S = float(os.environ.get("EVAL_DELAY", "8"))
+
+
+def run(llm=None, cases=None, delay=None):
     cases = cases or load_cases()
+    delay = DELAY_S if delay is None else delay
     rows = []
-    for case in cases:
+    for i, case in enumerate(cases):
+        if i and delay:
+            time.sleep(delay)
         start = time.perf_counter()
         try:
             answer = ask(case["question"], llm=llm)

@@ -35,6 +35,9 @@ Rules:
 - Mention the 80% range (p10 to p90) when it exists, so users see uncertainty.
 - Health guidance: use the AQI category the tool gives; do not give medical advice
   beyond it.
+- All times are Karachi local time. Use `now_karachi` from get_forecast to
+  interpret "tonight", "tomorrow" or "this weekend". Never present an hour
+  before now as upcoming.
 - Reply in the user's language: English, Urdu or Roman Urdu.
 - Be brief: two to five sentences.
 """
@@ -57,30 +60,37 @@ def _forecast():
     return pd.read_csv(path, parse_dates=["timestamp"]) if os.path.exists(path) else None
 
 
-def get_forecast(from_hour: int = 1, to_hour: int = 72) -> dict:
-    """Published PM2.5 and AQI forecast between two lead hours (1-72).
+def _now():
+    """Current Karachi time (naive, like the data). Tests replace this."""
+    return pd.Timestamp.now(tz="Asia/Karachi").tz_localize(None).floor("h")
 
-    Returns the issue time, a summary (mean, peak and lowest hour) and the
-    hourly rows for that window, including the 80% range when available.
+
+def get_forecast(hours_ahead: int = 72) -> dict:
+    """PM2.5 and AQI forecast from the current hour onward, in Karachi time.
+
+    Returns the current time, a summary (mean, peak and lowest hour) and the
+    hourly rows for the next `hours_ahead` hours, including the 80% range.
     """
     fc = _forecast()
     if fc is None:
         return {"error": "no forecast has been published"}
-    from_hour, to_hour = max(1, int(from_hour)), min(72, int(to_hour))
-    part = fc[fc["horizon_hour"].between(from_hour, to_hour)]
-    if part.empty:
-        return {"error": f"no forecast rows between hour {from_hour} and {to_hour}"}
+    now = _now()
+    upcoming = fc[fc["timestamp"] >= now]
+    if upcoming.empty:
+        return {"error": "the latest forecast has expired; no upcoming hours",
+                "now_karachi": f"{now:%a %d %b %H:00}"}
+    part = upcoming[upcoming["timestamp"] < now + pd.Timedelta(hours=max(1, int(hours_ahead)))]
     peak = part.loc[part["pm2_5_predicted"].idxmax()]
     low = part.loc[part["pm2_5_predicted"].idxmin()]
     anchor = fc["timestamp"].min() - pd.Timedelta(hours=1)
-    cols = [c for c in ["timestamp", "horizon_hour", "pm2_5_predicted", "pm2_5_p10",
-                        "pm2_5_p90", "aqi_predicted", "aqi_category", "cams_pm2_5"]
-            if c in part.columns]
+    cols = [c for c in ["timestamp", "pm2_5_predicted", "pm2_5_p10", "pm2_5_p90",
+                        "aqi_predicted", "aqi_category", "cams_pm2_5"] if c in part.columns]
     rows = part[cols].copy()
     rows["timestamp"] = rows["timestamp"].dt.strftime("%a %d %b %H:00")
     return {
+        "now_karachi": f"{now:%a %d %b %H:00}",
         "based_on_measurements_up_to": f"{anchor:%a %d %b %H:00}",
-        "window": f"hours {from_hour}-{to_hour}",
+        "forecast_ends": f"{fc['timestamp'].max():%a %d %b %H:00}",
         "mean_pm2_5": round(float(part["pm2_5_predicted"].mean()), 1),
         "peak": {"time": f"{peak['timestamp']:%a %d %b %H:00}",
                  "pm2_5": float(peak["pm2_5_predicted"]),
@@ -99,23 +109,26 @@ def get_live_track_record() -> dict:
     return live or {"error": "no live track record yet"}
 
 
-def get_backtest_accuracy(horizon_hours: int = 24) -> dict:
-    """Rolling-origin backtest accuracy at one lead time (1, 3, 6, 12, 24, 48 or 72)."""
+def get_backtest_accuracy() -> dict:
+    """Rolling-origin backtest accuracy at every reported lead time (1-72 hours):
+    MAE, skill vs CAMS and persistence, and 80% range coverage."""
     res = _read_json("horizon_results.json")
     if not res:
         return {"error": "no backtest results"}
-    available = sorted(int(h) for h in res.get("horizons", {}))
-    h = min(available, key=lambda a: abs(a - int(horizon_hours)))
-    out = {
-        "horizon_hours": h,
-        "metrics": res["horizons"][str(h)],
+    intervals = res.get("intervals") or {}
+    by_lead = {}
+    for h, m in sorted(res.get("horizons", {}).items(), key=lambda kv: int(kv[0])):
+        row = {k: m.get(k) for k in ["MAE", "cams_MAE", "skill_vs_cams",
+                                       "skill_vs_persistence", "R2"] if k in m}
+        if intervals.get(h, {}).get("coverage") is not None:
+            row["range_80_coverage"] = intervals[h]["coverage"]
+        by_lead[f"{h}h"] = row
+    return {
+        "evaluation": res.get("evaluation"),
         "mean_skill_vs_cams": res.get("mean_skill_vs_cams"),
         "mean_skill_vs_persistence": res.get("mean_skill_vs_persistence"),
-        "evaluation": res.get("evaluation"),
+        "by_lead_time": by_lead,
     }
-    if res.get("intervals", {}).get(str(h)):
-        out["interval_80"] = res["intervals"][str(h)]
-    return out
 
 
 def get_forecast_drivers() -> dict:
@@ -217,21 +230,31 @@ class GeminiLLM:
         self.client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"])
         self.model = model or os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
-    def run(self, question, tools):
+    def run(self, question, tools, retries=3):
+        """Free-tier keys hit per-minute limits (HTTP 429): wait and retry."""
+        import time
+
         from google.genai import types
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=question,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                tools=tools,
-                temperature=0.1,
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                    maximum_remote_calls=6),
-            ),
+        config = types.GenerateContentConfig(
+            system_instruction=SYSTEM_PROMPT,
+            tools=tools,
+            temperature=0.1,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                maximum_remote_calls=6),
         )
-        return response.text or ""
+        for attempt in range(retries + 1):
+            try:
+                response = self.client.models.generate_content(
+                    model=self.model, contents=question, config=config)
+                return response.text or ""
+            except Exception as exc:
+                busy = any(s in str(exc) for s in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE"))
+                if not busy or attempt == retries:
+                    raise
+                wait = re.search(r"retry in ([\d.]+)s|'retryDelay': '(\d+)s'", str(exc))
+                delay = float(next(g for g in wait.groups() if g)) if wait else 5 * (attempt + 1)
+                time.sleep(min(delay + 1, 30))
 
 
 def ask(question: str, llm=None, tools=TOOLS) -> Answer:

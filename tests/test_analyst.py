@@ -6,6 +6,9 @@ Runs with a scripted stand-in for the LLM: no API key, no network.
 import os
 import sys
 
+import pandas as pd
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import analyst  # noqa: E402
@@ -27,12 +30,20 @@ class ScriptedLLM:
         return self.answers.pop(0)
 
 
+@pytest.fixture(autouse=True)
+def frozen_now(monkeypatch):
+    """Pretend it is the hour the committed forecast starts."""
+    start = analyst._forecast()["timestamp"].min()
+    monkeypatch.setattr(analyst, "_now", lambda: start)
+    return start
+
+
 def _peak():
     return get_forecast()["peak"]
 
 
 def test_tools_read_the_committed_forecast():
-    out = get_forecast(1, 72)
+    out = get_forecast()
     assert "error" not in out
     assert len(out["hours"]) == 72
     assert out["peak"]["pm2_5"] >= out["mean_pm2_5"] >= out["lowest"]["pm2_5"]
@@ -92,3 +103,42 @@ def test_out_of_scope_is_judged_on_the_decline():
             "expect_any": ["only", "72"]}
     a = analyst.Answer(text="I only forecast the next 72 hours.")
     assert judge(case, a)["right_tool"]
+
+
+def test_forecast_skips_hours_that_have_passed(monkeypatch, frozen_now):
+    monkeypatch.setattr(analyst, "_now", lambda: frozen_now + pd.Timedelta(hours=10))
+    out = get_forecast()
+    assert len(out["hours"]) == 62
+    assert out["now_karachi"] == f"{frozen_now + pd.Timedelta(hours=10):%a %d %b %H:00}"
+
+
+def test_expired_forecast_says_so(monkeypatch, frozen_now):
+    monkeypatch.setattr(analyst, "_now", lambda: frozen_now + pd.Timedelta(days=5))
+    assert "error" in get_forecast()
+
+
+def test_backtest_tool_returns_every_lead_time():
+    out = analyst.get_backtest_accuracy()
+    assert {"1h", "24h", "72h"} <= set(out["by_lead_time"])
+
+
+def test_rate_limit_is_retried_not_fatal(monkeypatch):
+    pytest.importorskip("google.genai")
+    monkeypatch.setattr("time.sleep", lambda s: None)
+
+    class Resp:
+        text = "ok"
+
+    class Models:
+        calls = 0
+
+        def generate_content(self, **kw):
+            Models.calls += 1
+            if Models.calls < 3:
+                raise RuntimeError("429 RESOURCE_EXHAUSTED. Please retry in 2.5s.")
+            return Resp()
+
+    llm = analyst.GeminiLLM.__new__(analyst.GeminiLLM)
+    llm.client = type("C", (), {"models": Models()})()
+    llm.model = "x"
+    assert llm.run("q", []) == "ok" and Models.calls == 3
