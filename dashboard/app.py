@@ -134,8 +134,60 @@ with clock:
 
 st.divider()
 
+
+def gemini_key():
+    key = os.environ.get("GEMINI_API_KEY")
+    try:
+        key = key or st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        pass
+    return key
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def cached_answer(question, forecast_anchor, _key):
+    """One API call per question per published forecast."""
+    from analyst import GeminiLLM, ask
+
+    a = ask(question, llm=GeminiLLM(api_key=_key))
+    return a.text, a.grounded
+
+
+EXAMPLES = ["Aaj raat hawa kaisi hogi?",
+            "When is the worst hour in the next 3 days?",
+            "How accurate has this forecast been?"]
+
+
+def render_ask():
+    key = gemini_key()
+    if not key:
+        return
+    with st.container(border=True):
+        st.markdown("**💬 Ask the forecast** · English, Urdu or Roman Urdu")
+        cols = st.columns(len(EXAMPLES))
+        for col, example in zip(cols, EXAMPLES):
+            if col.button(example, key=f"ex_{example}", width="stretch"):
+                st.session_state["ask_q"] = example
+        question = st.text_input("Question", key="ask_q", label_visibility="collapsed",
+                                 placeholder="Type a question and press Enter")
+        if question:
+            with st.spinner("Checking the forecast..."):
+                try:
+                    text, grounded = cached_answer(
+                        question.strip(), str(fc_df["timestamp"].min()), key)
+                except Exception:
+                    text, grounded = None, False
+            if text is None:
+                st.warning("The assistant is unavailable right now. Please try again later.")
+            else:
+                st.markdown(text)
+                st.caption("✓ Every number checked against the forecast data" if grounded
+                           else "Answer withheld: could not be verified")
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 if page == "Dashboard":
+    render_ask()
     c1, c2, c3 = st.columns([1, 1, 2])
 
     with c1:
@@ -415,26 +467,6 @@ elif page == "Track record":
         else:
             st.caption("No drift report yet.")
 
-    st.divider()
-    st.subheader("💬 Ask about the forecast")
-    api_key = os.environ.get("GEMINI_API_KEY")
-    try:
-        api_key = api_key or st.secrets.get("GEMINI_API_KEY")
-    except Exception:
-        pass
-    if not api_key:
-        st.caption("Set GEMINI_API_KEY in the app's secrets to enable questions.")
-    else:
-        question = st.text_input("Ask in English, Urdu or Roman Urdu",
-                                 placeholder="Aaj raat hawa kaisi hogi?")
-        if question:
-            from analyst import GeminiLLM, ask
-
-            with st.spinner("Checking the forecast..."):
-                answer = ask(question, llm=GeminiLLM(api_key=api_key))
-            st.markdown(answer.text)
-            st.caption("✓ Every number checked against the forecast data" if answer.grounded
-                       else "Answer withheld: could not be verified")
 
 # ═════════════════════════════════════════════════════════════════════════════
 elif page == "Analysis":
