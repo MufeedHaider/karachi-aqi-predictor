@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-06T13:38:15.810241+00:00",
+  "generated_at": "2026-10-06T14:54:24.651731+00:00",
   "what": "published forecasts scored against later OpenAQ measurements",
   "n_forecasts_issued": 33,
   "n_forecasts_scored": 33,
-  "n_points": 2283,
+  "n_points": 2289,
   "buckets": {
     "1-6h": {
       "n_points": 198,
@@ -24,47 +24,47 @@
       "bias": -1.835
     },
     "13-24h": {
-      "n_points": 389,
+      "n_points": 391,
       "MAE": 4.283,
-      "cams_MAE": 7.185,
-      "persistence_MAE": 5.68,
+      "cams_MAE": 7.187,
+      "persistence_MAE": 5.676,
       "skill_vs_cams": 0.404,
-      "skill_vs_persistence": 0.246,
-      "bias": -0.518
+      "skill_vs_persistence": 0.245,
+      "bias": -0.537
     },
     "25-48h": {
-      "n_points": 761,
+      "n_points": 763,
       "MAE": 4.806,
-      "cams_MAE": 8.481,
-      "persistence_MAE": 6.681,
+      "cams_MAE": 8.472,
+      "persistence_MAE": 6.683,
       "skill_vs_cams": 0.433,
       "skill_vs_persistence": 0.281,
-      "bias": -0.571
+      "bias": -0.582
     },
     "49-72h": {
-      "n_points": 737,
-      "MAE": 5.216,
-      "cams_MAE": 8.923,
-      "persistence_MAE": 7.931,
-      "skill_vs_cams": 0.416,
-      "skill_vs_persistence": 0.342,
-      "bias": -1.268
+      "n_points": 739,
+      "MAE": 5.219,
+      "cams_MAE": 8.913,
+      "persistence_MAE": 7.919,
+      "skill_vs_cams": 0.414,
+      "skill_vs_persistence": 0.341,
+      "bias": -1.283
     }
   },
   "median_publish_latency_hours": 5.3,
   "period": "2026-09-04 to 2026-10-06",
   "overall": {
-    "n_points": 2283,
-    "MAE": 4.772,
-    "cams_MAE": 8.423,
-    "persistence_MAE": 6.852,
+    "n_points": 2289,
+    "MAE": 4.773,
+    "cams_MAE": 8.416,
+    "persistence_MAE": 6.848,
     "skill_vs_cams": 0.433,
-    "skill_vs_persistence": 0.304,
-    "bias": -0.883
+    "skill_vs_persistence": 0.303,
+    "bias": -0.895
   },
   "interval_80": {
-    "n_points": 411,
+    "n_points": 417,
     "coverage": 0.803,
-    "mean_width": 15.41
+    "mean_width": 15.46
   }
 }
