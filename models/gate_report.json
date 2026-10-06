@@ -14,12 +14,12 @@
     {
       "name": "no regression vs CAMS",
       "passed": true,
-      "detail": "+41.2% -> +40.7% (drop +0.5%, limit 5%)"
+      "detail": "+40.7% -> +40.7% (drop +0.0%, limit 5%)"
     },
     {
       "name": "no regression at 24h",
       "passed": true,
-      "detail": "MAE 5.16 -> 5.13 (-0.6%, limit 15%)"
+      "detail": "MAE 5.13 -> 5.13 (+0.0%, limit 15%)"
     }
   ],
   "warnings": [

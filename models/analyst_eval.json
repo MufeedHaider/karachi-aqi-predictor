@@ -1,0 +1,327 @@
+{
+  "totals": {
+    "n": 22,
+    "pass_rate": 0.545,
+    "grounded_rate": 0.545,
+    "first_try_grounded_rate": 0.545,
+    "tool_selection_rate": 0.545,
+    "median_latency_s": 1.3
+  },
+  "cases": [
+    {
+      "id": "tonight",
+      "question": "How will the air be tonight?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_system_status",
+        "get_forecast",
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "Tonight (Tue 06 Oct 00:00), the air is expected to be **Moderate** with a predicted PM2.5 level of 19.64 and an 80% range (p10 to p90) of 14.98 to 23.62. \n\nOur live track record shows an overall MAE of 4.772 (with 1-6h MAE at 3.527), and backtest accuracy is solid.",
+      "error": null,
+      "latency_s": 113.26
+    },
+    {
+      "id": "peak",
+      "question": "When is PM2.5 expected to be highest in the next three days, and how high?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast"
+      ],
+      "ungrounded": [],
+      "answer": "PM2.5 is expected to peak on Thu 08 Oct 09:00 with a predicted value of 37.42 (80% range: 17.27 to 41.36), reaching the \"Unhealthy for Sensitive Groups\" AQI category.",
+      "error": null,
+      "latency_s": 20.0
+    },
+    {
+      "id": "tomorrow_morning",
+      "question": "Is tomorrow morning okay for a run outside?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast",
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "Tomorrow morning (Wednesday, Oct 7, 05:00–07:00) the forecast predicts a Moderate AQI category with an AQI of 74 to 83 and predicted PM2.5 levels around 21.2 to 26.1 µg/m³. The 80% range for tomorrow morning is roughly 8.8 to 33.9 µg/m³. \n\nFor accuracy, our live track record shows an overall MAE of 4.8 against ground monitors (outperforming CAMS by 43.3% and persistence by 30.4%).",
+      "error": null,
+      "latency_s": 18.62
+    },
+    {
+      "id": "range",
+      "question": "How sure is the forecast for 48 hours from now?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "For the 25-48h live track record, the MAE is 4.806 with a bias of -0.571 across 761 points, showing better accuracy than CAMS (MAE 8.481) and persistence (MAE 6.681).",
+      "error": null,
+      "latency_s": 15.46
+    },
+    {
+      "id": "live_acc",
+      "question": "How accurate has this forecast actually been?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "Based on our live track record, published forecasts scored against later OpenAQ measurements show an overall Mean Absolute Error (MAE) of 4.772 with a skill of 43.3% versus CAMS and 30.4% versus persistence across 2,283 points. For 13-24 hour horizons specifically, the live MAE is 4.283.",
+      "error": null,
+      "latency_s": 7.87
+    },
+    {
+      "id": "vs_cams",
+      "question": "Is this better than the Copernicus CAMS forecast?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "Yes, the live track record shows this system outperforms CAMS overall, achieving a mean absolute error (MAE) of 4.8 compared to CAMS's 8.4 (a skill score of 43.3% vs CAMS).",
+      "error": null,
+      "latency_s": 1.3
+    },
+    {
+      "id": "bt_72",
+      "question": "What is the backtested error at 72 hours?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_backtest_accuracy",
+        "get_system_status",
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "The backtest accuracy tool only provides results for the 24-hour horizon (showing an MAE of 5.126), so the 72-hour backtested error is not available. However, in the live track record, the 49-72h bucket shows an MAE of 5.216 compared to ground monitors.",
+      "error": null,
+      "latency_s": 18.34
+    },
+    {
+      "id": "bt_1",
+      "question": "How good is the 1-hour forecast?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_live_track_record"
+      ],
+      "ungrounded": [],
+      "answer": "For the 1-6h live track record, the MAE is 3.527 with a skill of 51.6% vs CAMS and 35.9% vs persistence. For backtest accuracy at a 1-hour horizon, the system currently encounters a technical error.",
+      "error": null,
+      "latency_s": 4.69
+    },
+    {
+      "id": "drivers",
+      "question": "What drives the forecast the most?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast_drivers"
+      ],
+      "ungrounded": [],
+      "answer": "The top feature driving the 24-hour forecast is `cams_gap` (Measured minus CAMS (now)) with a mean absolute SHAP value of 7.16, followed by `fut_cams_pm25` (CAMS forecast for target hour) at 4.26, and `fut_wind_speed` (Forecast wind speed) at 3.24.",
+      "error": null,
+      "latency_s": 1.21
+    },
+    {
+      "id": "why_cams",
+      "question": "Why does the model use CAMS as an input if CAMS is wrong?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast_drivers"
+      ],
+      "ungrounded": [],
+      "answer": "CAMS is still useful even when it is wrong because the model relies on features like `cams_gap` (measured minus CAMS) and `fut_cams_pm25` (the CAMS forecast for the target hour) as its top drivers. By combining CAMS with local ground measurements and weather data, the model learns to correct CAMS's systematic errors.",
+      "error": null,
+      "latency_s": 1.51
+    },
+    {
+      "id": "fresh",
+      "question": "Is the data up to date?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_system_status"
+      ],
+      "ungrounded": [],
+      "answer": "Yes, the data is up to date with the model generated at 2026-10-06T13:38:09.188744+00:00 and forecasts issued from 2026-10-05 23:00:00. The last retrain passed its accuracy gate, though there is moderate input drift with no drifted or degraded inputs.",
+      "error": null,
+      "latency_s": 1.57
+    },
+    {
+      "id": "gate",
+      "question": "Did the latest model pass its checks?",
+      "grounded": true,
+      "first_try": true,
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_system_status"
+      ],
+      "ungrounded": [],
+      "answer": "Yes, the latest model passed its accuracy gate. The system status shows that the accuracy gate passed, with moderate input drift and no degraded inputs.",
+      "error": null,
+      "latency_s": 1.15
+    },
+    {
+      "id": "drift",
+      "question": "Are conditions unusual compared with what the model was trained on?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 17.103588102s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '17s'}]}}\")",
+      "latency_s": 1.72
+    },
+    {
+      "id": "category",
+      "question": "Will AQI reach Unhealthy in the next 72 hours?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 16.940610938s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '16s'}]}}\")",
+      "latency_s": 0.16
+    },
+    {
+      "id": "weekend",
+      "question": "Give me the lowest pollution hour in the forecast.",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 15.640137489s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '15s'}]}}\")",
+      "latency_s": 1.3
+    },
+    {
+      "id": "roman_urdu_tonight",
+      "question": "Aaj raat Karachi ki hawa kaisi hogi?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 15.453704869s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '15s'}]}}\")",
+      "latency_s": 0.19
+    },
+    {
+      "id": "roman_urdu_acc",
+      "question": "Ye forecast kitna sahi hota hai?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 15.276425015s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '15s'}]}}\")",
+      "latency_s": 0.18
+    },
+    {
+      "id": "urdu_peak",
+      "question": "اگلے تین دنوں میں آلودگی سب سے زیادہ کب ہوگی؟",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 15.110768437s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '15s'}]}}\")",
+      "latency_s": 0.17
+    },
+    {
+      "id": "out_of_range",
+      "question": "What will PM2.5 be next month?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 14.949598225s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}\")",
+      "latency_s": 0.16
+    },
+    {
+      "id": "other_city",
+      "question": "What is the AQI forecast for Lahore?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 14.776816713s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash-lite', 'location': 'global'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}\")",
+      "latency_s": 0.17
+    },
+    {
+      "id": "trap_number",
+      "question": "The forecast says PM2.5 will hit 250 tomorrow, right?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 14.615582013s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.5-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}\")",
+      "latency_s": 0.16
+    },
+    {
+      "id": "trap_compute",
+      "question": "What is the average PM2.5 over the next 6 hours multiplied by 3?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
+      "ungrounded": [],
+      "answer": null,
+      "error": "ClientError(\"429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\\\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.5-flash-lite\\\\nPlease retry in 14.471008773s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.5-flash-lite', 'location': 'global'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '14s'}]}}\")",
+      "latency_s": 0.14
+    }
+  ]
+}
