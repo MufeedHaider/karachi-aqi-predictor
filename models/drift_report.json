@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T05:16:28.426566+00:00",
+  "generated_at": "2026-10-11T05:06:39.706289+00:00",
   "recent_window": "last 7 days",
   "reference": "all earlier data",
   "n_recent": 168,
@@ -7,52 +7,52 @@
   "features": {
     "ground_pm25": {
       "level": "moderate",
-      "out_of_range": 0.036,
-      "shift_sd": 0.69,
-      "reference_mean": 46.23,
-      "recent_mean": 22.13
+      "out_of_range": 0.0,
+      "shift_sd": 0.64,
+      "reference_mean": 46.18,
+      "recent_mean": 23.82
     },
     "cams_pm25": {
       "level": "moderate",
-      "out_of_range": 0.071,
-      "shift_sd": 0.61,
-      "reference_mean": 28.89,
-      "recent_mean": 21.21
+      "out_of_range": 0.06,
+      "shift_sd": 0.5,
+      "reference_mean": 28.83,
+      "recent_mean": 22.5
     },
     "cams_gap": {
       "level": "moderate",
       "out_of_range": 0.0,
-      "shift_sd": 0.59,
+      "shift_sd": 0.57,
       "reference_mean": 17.35,
-      "recent_mean": 0.91
+      "recent_mean": 1.33
     },
     "wind_speed": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.29,
-      "reference_mean": 11.0,
-      "recent_mean": 12.3
+      "shift_sd": 0.36,
+      "reference_mean": 11.02,
+      "recent_mean": 12.62
     },
     "humidity": {
       "level": "moderate",
       "out_of_range": 0.0,
-      "shift_sd": 0.55,
-      "reference_mean": 65.12,
-      "recent_mean": 76.19
+      "shift_sd": 0.51,
+      "reference_mean": 65.17,
+      "recent_mean": 75.49
     },
     "temperature": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.41,
+      "shift_sd": 0.43,
       "reference_mean": 26.34,
-      "recent_mean": 28.27
+      "recent_mean": 28.34
     },
     "cams_pm10": {
       "level": "stable",
-      "out_of_range": 0.036,
-      "shift_sd": 0.12,
-      "reference_mean": 53.34,
-      "recent_mean": 50.14
+      "out_of_range": 0.03,
+      "shift_sd": 0.0,
+      "reference_mean": 53.29,
+      "recent_mean": 53.38
     }
   }
 }
