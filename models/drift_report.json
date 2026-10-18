@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-17T03:50:48.431572+00:00",
+  "generated_at": "2026-10-18T03:56:23.148453+00:00",
   "recent_window": "last 7 days",
   "reference": "all earlier data",
   "n_recent": 168,
@@ -8,51 +8,51 @@
     "ground_pm25": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.11,
-      "reference_mean": 45.75,
-      "recent_mean": 42.02
+      "shift_sd": 0.0,
+      "reference_mean": 45.73,
+      "recent_mean": 45.61
     },
     "cams_pm25": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.18,
+      "shift_sd": 0.41,
       "reference_mean": 28.64,
-      "recent_mean": 30.87
+      "recent_mean": 33.88
     },
     "cams_gap": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.21,
-      "reference_mean": 17.11,
-      "recent_mean": 11.15
+      "shift_sd": 0.19,
+      "reference_mean": 17.09,
+      "recent_mean": 11.73
     },
     "wind_speed": {
-      "level": "stable",
+      "level": "moderate",
       "out_of_range": 0.006,
-      "shift_sd": 0.28,
-      "reference_mean": 11.08,
-      "recent_mean": 9.83
+      "shift_sd": 0.58,
+      "reference_mean": 11.1,
+      "recent_mean": 8.47
     },
     "humidity": {
       "level": "stable",
-      "out_of_range": 0.0,
-      "shift_sd": 0.33,
-      "reference_mean": 65.57,
-      "recent_mean": 72.11
+      "out_of_range": 0.006,
+      "shift_sd": 0.31,
+      "reference_mean": 65.63,
+      "recent_mean": 71.9
     },
     "temperature": {
       "level": "moderate",
       "out_of_range": 0.024,
-      "shift_sd": 0.61,
+      "shift_sd": 0.62,
       "reference_mean": 26.34,
-      "recent_mean": 29.19
+      "recent_mean": 29.23
     },
     "cams_pm10": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.27,
-      "reference_mean": 53.48,
-      "recent_mean": 60.93
+      "shift_sd": 0.3,
+      "reference_mean": 53.57,
+      "recent_mean": 61.74
     }
   }
 }
