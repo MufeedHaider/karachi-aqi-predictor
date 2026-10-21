@@ -1,73 +1,73 @@
 timestamp,horizon_hour,pm2_5_predicted,aqi_predicted,aqi_category,cams_pm2_5,pm2_5_p10,pm2_5_p90
-2026-10-20 00:00:00,1,37.72,107,Unhealthy for Sensitive Groups,37.5,32.11,45.25
-2026-10-20 01:00:00,2,36.74,104,Unhealthy for Sensitive Groups,35.0,33.1,43.46
-2026-10-20 02:00:00,3,35.55,101,Unhealthy for Sensitive Groups,32.7,32.31,47.09
-2026-10-20 03:00:00,4,34.3,98,Moderate,30.7,27.68,45.61
-2026-10-20 04:00:00,5,39.72,112,Unhealthy for Sensitive Groups,28.9,31.84,51.17
-2026-10-20 05:00:00,6,39.62,111,Unhealthy for Sensitive Groups,27.9,35.1,51.4
-2026-10-20 06:00:00,7,40.96,115,Unhealthy for Sensitive Groups,28.2,31.98,61.73
-2026-10-20 07:00:00,8,49.05,134,Unhealthy for Sensitive Groups,32.2,33.16,61.48
-2026-10-20 08:00:00,9,51.81,141,Unhealthy for Sensitive Groups,37.0,36.77,71.3
-2026-10-20 09:00:00,10,46.17,127,Unhealthy for Sensitive Groups,36.4,32.2,56.8
-2026-10-20 10:00:00,11,45.73,126,Unhealthy for Sensitive Groups,34.1,26.26,54.78
-2026-10-20 11:00:00,12,34.4,98,Moderate,27.5,22.24,46.87
-2026-10-20 12:00:00,13,31.39,93,Moderate,22.2,18.18,38.76
-2026-10-20 13:00:00,14,23.71,78,Moderate,20.4,16.2,36.99
-2026-10-20 14:00:00,15,23.44,78,Moderate,19.5,11.87,31.66
-2026-10-20 15:00:00,16,23.31,78,Moderate,19.3,15.68,32.11
-2026-10-20 16:00:00,17,23.66,78,Moderate,19.9,17.21,31.28
-2026-10-20 17:00:00,18,28.08,86,Moderate,22.4,16.26,40.19
-2026-10-20 18:00:00,19,35.24,100,Moderate,26.8,28.03,44.01
-2026-10-20 19:00:00,20,42.43,118,Unhealthy for Sensitive Groups,33.9,28.27,50.43
-2026-10-20 20:00:00,21,44.61,124,Unhealthy for Sensitive Groups,37.5,32.63,54.33
-2026-10-20 21:00:00,22,43.67,121,Unhealthy for Sensitive Groups,39.0,33.78,56.35
-2026-10-20 22:00:00,23,46.62,128,Unhealthy for Sensitive Groups,39.5,32.18,64.87
-2026-10-20 23:00:00,24,43.35,120,Unhealthy for Sensitive Groups,38.2,30.33,58.36
-2026-10-21 00:00:00,25,45.6,126,Unhealthy for Sensitive Groups,36.0,29.13,52.26
-2026-10-21 01:00:00,26,47.94,132,Unhealthy for Sensitive Groups,32.4,27.66,57.37
-2026-10-21 02:00:00,27,47.87,132,Unhealthy for Sensitive Groups,29.5,29.81,59.75
-2026-10-21 03:00:00,28,49.7,136,Unhealthy for Sensitive Groups,27.8,29.47,55.75
-2026-10-21 04:00:00,29,42.06,117,Unhealthy for Sensitive Groups,26.9,24.04,50.01
-2026-10-21 05:00:00,30,42.46,118,Unhealthy for Sensitive Groups,26.2,24.87,47.3
-2026-10-21 06:00:00,31,48.04,132,Unhealthy for Sensitive Groups,26.3,27.01,52.85
-2026-10-21 07:00:00,32,53.58,146,Unhealthy for Sensitive Groups,29.7,34.18,67.92
-2026-10-21 08:00:00,33,50.14,137,Unhealthy for Sensitive Groups,32.5,32.04,63.58
-2026-10-21 09:00:00,34,51.38,140,Unhealthy for Sensitive Groups,30.5,30.83,55.57
-2026-10-21 10:00:00,35,42.32,118,Unhealthy for Sensitive Groups,29.2,28.66,52.62
-2026-10-21 11:00:00,36,41.86,117,Unhealthy for Sensitive Groups,29.5,23.47,52.59
-2026-10-21 12:00:00,37,34.5,98,Moderate,31.0,22.34,40.44
-2026-10-21 13:00:00,38,36.55,104,Unhealthy for Sensitive Groups,32.0,21.87,46.28
-2026-10-21 14:00:00,39,36.42,103,Unhealthy for Sensitive Groups,32.5,20.74,39.61
-2026-10-21 15:00:00,40,34.63,99,Moderate,33.3,19.36,42.45
-2026-10-21 16:00:00,41,35.76,102,Unhealthy for Sensitive Groups,33.8,21.02,45.46
-2026-10-21 17:00:00,42,35.93,102,Unhealthy for Sensitive Groups,34.7,20.74,50.95
-2026-10-21 18:00:00,43,39.52,111,Unhealthy for Sensitive Groups,36.4,22.63,46.19
-2026-10-21 19:00:00,44,40.5,113,Unhealthy for Sensitive Groups,39.8,25.58,58.79
-2026-10-21 20:00:00,45,47.63,131,Unhealthy for Sensitive Groups,41.2,29.32,73.25
-2026-10-21 21:00:00,46,43.7,121,Unhealthy for Sensitive Groups,41.4,33.88,65.45
-2026-10-21 22:00:00,47,51.02,139,Unhealthy for Sensitive Groups,42.3,33.84,67.04
-2026-10-21 23:00:00,48,45.15,125,Unhealthy for Sensitive Groups,42.7,32.57,62.93
-2026-10-22 00:00:00,49,49.62,136,Unhealthy for Sensitive Groups,41.4,29.66,60.12
-2026-10-22 01:00:00,50,46.9,129,Unhealthy for Sensitive Groups,37.6,29.78,64.85
-2026-10-22 02:00:00,51,47.8,131,Unhealthy for Sensitive Groups,35.2,31.62,61.16
-2026-10-22 03:00:00,52,51.64,141,Unhealthy for Sensitive Groups,34.3,27.95,58.81
-2026-10-22 04:00:00,53,56.95,152,Unhealthy,34.8,30.92,58.96
-2026-10-22 05:00:00,54,51.53,141,Unhealthy for Sensitive Groups,36.2,31.2,63.45
-2026-10-22 06:00:00,55,65.08,158,Unhealthy,38.6,34.74,73.07
-2026-10-22 07:00:00,56,67.1,159,Unhealthy,46.4,38.74,70.83
-2026-10-22 08:00:00,57,72.09,163,Unhealthy,50.2,41.15,83.85
-2026-10-22 09:00:00,58,61.42,155,Unhealthy,48.2,39.12,74.69
-2026-10-22 10:00:00,59,62.8,156,Unhealthy,46.0,36.41,68.75
-2026-10-22 11:00:00,60,56.72,152,Unhealthy,45.5,32.81,66.76
-2026-10-22 12:00:00,61,54.9,149,Unhealthy for Sensitive Groups,45.6,33.88,56.72
-2026-10-22 13:00:00,62,54.42,148,Unhealthy for Sensitive Groups,45.3,29.18,55.62
-2026-10-22 14:00:00,63,44.25,123,Unhealthy for Sensitive Groups,43.0,22.15,56.84
-2026-10-22 15:00:00,64,42.71,119,Unhealthy for Sensitive Groups,40.7,25.0,49.8
-2026-10-22 16:00:00,65,43.18,120,Unhealthy for Sensitive Groups,39.6,20.16,49.32
-2026-10-22 17:00:00,66,41.53,116,Unhealthy for Sensitive Groups,39.7,18.25,42.68
-2026-10-22 18:00:00,67,44.82,124,Unhealthy for Sensitive Groups,40.9,22.61,44.82
-2026-10-22 19:00:00,68,47.02,129,Unhealthy for Sensitive Groups,41.3,22.59,64.88
-2026-10-22 20:00:00,69,47.49,131,Unhealthy for Sensitive Groups,41.8,30.19,59.49
-2026-10-22 21:00:00,70,50.89,139,Unhealthy for Sensitive Groups,41.6,30.56,72.44
-2026-10-22 22:00:00,71,53.3,145,Unhealthy for Sensitive Groups,41.6,32.87,79.63
-2026-10-22 23:00:00,72,44.03,122,Unhealthy for Sensitive Groups,41.0,29.76,57.18
+2026-10-21 00:00:00,1,40.59,114,Unhealthy for Sensitive Groups,33.8,32.42,50.34
+2026-10-21 01:00:00,2,42.24,118,Unhealthy for Sensitive Groups,29.8,33.28,50.77
+2026-10-21 02:00:00,3,39.13,110,Unhealthy for Sensitive Groups,26.5,33.18,44.08
+2026-10-21 03:00:00,4,36.56,104,Unhealthy for Sensitive Groups,25.0,30.74,52.07
+2026-10-21 04:00:00,5,45.82,127,Unhealthy for Sensitive Groups,25.2,33.28,51.01
+2026-10-21 05:00:00,6,49.81,136,Unhealthy for Sensitive Groups,25.7,32.88,51.9
+2026-10-21 06:00:00,7,49.12,135,Unhealthy for Sensitive Groups,26.9,32.2,52.98
+2026-10-21 07:00:00,8,53.66,146,Unhealthy for Sensitive Groups,31.9,35.87,67.13
+2026-10-21 08:00:00,9,55.34,150,Unhealthy for Sensitive Groups,37.3,37.15,67.03
+2026-10-21 09:00:00,10,52.23,142,Unhealthy for Sensitive Groups,36.6,35.24,59.9
+2026-10-21 10:00:00,11,52.62,143,Unhealthy for Sensitive Groups,36.8,31.28,60.27
+2026-10-21 11:00:00,12,46.87,129,Unhealthy for Sensitive Groups,36.0,29.68,54.27
+2026-10-21 12:00:00,13,39.38,111,Unhealthy for Sensitive Groups,34.3,21.5,44.71
+2026-10-21 13:00:00,14,37.37,106,Unhealthy for Sensitive Groups,32.7,18.22,46.41
+2026-10-21 14:00:00,15,35.56,101,Unhealthy for Sensitive Groups,31.3,18.16,41.94
+2026-10-21 15:00:00,16,33.52,97,Moderate,30.4,17.41,41.11
+2026-10-21 16:00:00,17,32.81,95,Moderate,29.7,17.25,46.68
+2026-10-21 17:00:00,18,36.69,104,Unhealthy for Sensitive Groups,30.2,22.19,45.14
+2026-10-21 18:00:00,19,38.61,109,Unhealthy for Sensitive Groups,32.1,22.47,50.25
+2026-10-21 19:00:00,20,42.8,119,Unhealthy for Sensitive Groups,36.7,34.03,53.45
+2026-10-21 20:00:00,21,44.55,123,Unhealthy for Sensitive Groups,40.4,33.75,60.85
+2026-10-21 21:00:00,22,45.04,125,Unhealthy for Sensitive Groups,40.7,34.38,57.13
+2026-10-21 22:00:00,23,39.54,111,Unhealthy for Sensitive Groups,40.7,34.56,58.09
+2026-10-21 23:00:00,24,40.34,113,Unhealthy for Sensitive Groups,39.3,30.58,55.77
+2026-10-22 00:00:00,25,40.1,113,Unhealthy for Sensitive Groups,36.0,29.64,53.91
+2026-10-22 01:00:00,26,43.61,121,Unhealthy for Sensitive Groups,31.0,28.74,57.17
+2026-10-22 02:00:00,27,50.61,138,Unhealthy for Sensitive Groups,27.8,31.08,64.09
+2026-10-22 03:00:00,28,46.61,128,Unhealthy for Sensitive Groups,26.6,30.55,62.71
+2026-10-22 04:00:00,29,47.97,132,Unhealthy for Sensitive Groups,26.7,29.91,54.39
+2026-10-22 05:00:00,30,46.32,128,Unhealthy for Sensitive Groups,26.8,33.5,51.23
+2026-10-22 06:00:00,31,48.88,134,Unhealthy for Sensitive Groups,28.0,36.34,62.81
+2026-10-22 07:00:00,32,55.13,149,Unhealthy for Sensitive Groups,34.8,40.72,65.52
+2026-10-22 08:00:00,33,52.55,143,Unhealthy for Sensitive Groups,40.6,36.02,73.58
+2026-10-22 09:00:00,34,57.04,152,Unhealthy,41.8,38.78,69.6
+2026-10-22 10:00:00,35,57.68,153,Unhealthy,42.0,36.08,61.06
+2026-10-22 11:00:00,36,53.85,146,Unhealthy for Sensitive Groups,44.1,29.72,67.09
+2026-10-22 12:00:00,37,48.54,133,Unhealthy for Sensitive Groups,43.2,29.49,68.76
+2026-10-22 13:00:00,38,44.76,124,Unhealthy for Sensitive Groups,41.3,31.69,66.88
+2026-10-22 14:00:00,39,40.67,114,Unhealthy for Sensitive Groups,38.8,21.26,53.67
+2026-10-22 15:00:00,40,38.19,108,Unhealthy for Sensitive Groups,35.7,19.87,42.61
+2026-10-22 16:00:00,41,36.17,103,Unhealthy for Sensitive Groups,33.8,16.56,44.07
+2026-10-22 17:00:00,42,40.57,114,Unhealthy for Sensitive Groups,34.1,20.19,42.76
+2026-10-22 18:00:00,43,40.44,113,Unhealthy for Sensitive Groups,37.4,25.39,57.03
+2026-10-22 19:00:00,44,50.73,139,Unhealthy for Sensitive Groups,40.2,29.2,62.91
+2026-10-22 20:00:00,45,50.66,138,Unhealthy for Sensitive Groups,42.3,31.56,63.79
+2026-10-22 21:00:00,46,48.04,132,Unhealthy for Sensitive Groups,43.1,35.06,74.57
+2026-10-22 22:00:00,47,47.35,130,Unhealthy for Sensitive Groups,43.5,36.97,67.03
+2026-10-22 23:00:00,48,47.35,130,Unhealthy for Sensitive Groups,43.8,35.72,69.3
+2026-10-23 00:00:00,49,38.53,109,Unhealthy for Sensitive Groups,40.9,29.08,43.09
+2026-10-23 01:00:00,50,36.77,104,Unhealthy for Sensitive Groups,34.2,25.49,44.22
+2026-10-23 02:00:00,51,52.73,143,Unhealthy for Sensitive Groups,29.8,31.15,57.22
+2026-10-23 03:00:00,52,43.81,122,Unhealthy for Sensitive Groups,27.8,24.28,56.06
+2026-10-23 04:00:00,53,36.58,104,Unhealthy for Sensitive Groups,26.9,24.56,46.01
+2026-10-23 05:00:00,54,45.29,125,Unhealthy for Sensitive Groups,27.0,28.1,53.73
+2026-10-23 06:00:00,55,44.56,123,Unhealthy for Sensitive Groups,28.0,29.35,60.04
+2026-10-23 07:00:00,56,53.21,145,Unhealthy for Sensitive Groups,31.7,35.4,70.58
+2026-10-23 08:00:00,57,55.74,151,Unhealthy,35.0,37.29,65.08
+2026-10-23 09:00:00,58,57.25,152,Unhealthy,37.6,38.24,59.89
+2026-10-23 10:00:00,59,61.67,155,Unhealthy,39.2,37.16,72.61
+2026-10-23 11:00:00,60,51.7,141,Unhealthy for Sensitive Groups,39.8,32.49,66.22
+2026-10-23 12:00:00,61,50.27,137,Unhealthy for Sensitive Groups,39.0,28.86,50.65
+2026-10-23 13:00:00,62,45.14,125,Unhealthy for Sensitive Groups,37.3,21.14,49.92
+2026-10-23 14:00:00,63,37.47,106,Unhealthy for Sensitive Groups,36.1,21.51,46.19
+2026-10-23 15:00:00,64,40.88,114,Unhealthy for Sensitive Groups,36.0,20.9,40.88
+2026-10-23 16:00:00,65,36.1,103,Unhealthy for Sensitive Groups,36.3,18.57,44.0
+2026-10-23 17:00:00,66,41.55,116,Unhealthy for Sensitive Groups,36.8,20.86,41.83
+2026-10-23 18:00:00,67,40.1,113,Unhealthy for Sensitive Groups,38.2,24.28,41.76
+2026-10-23 19:00:00,68,44.65,124,Unhealthy for Sensitive Groups,39.6,21.12,55.42
+2026-10-23 20:00:00,69,44.72,124,Unhealthy for Sensitive Groups,37.8,28.84,53.62
+2026-10-23 21:00:00,70,43.39,121,Unhealthy for Sensitive Groups,35.9,29.78,49.15
+2026-10-23 22:00:00,71,41.09,115,Unhealthy for Sensitive Groups,33.2,23.91,46.8
+2026-10-23 23:00:00,72,38.41,108,Unhealthy for Sensitive Groups,29.7,23.71,48.59
