@@ -1,49 +1,49 @@
 feature,label,mean_shap,horizon_hours
-cams_gap,Measured minus CAMS (now),6.9274282,24
-fut_cams_pm25,CAMS forecast for target hour,4.2442975,24
-fut_wind_speed,Forecast wind speed,3.368807,24
-pm25_roll3,Measured PM2.5 3h mean,2.2011395,24
-cams_pm10,CAMS PM10,1.8089217,24
-wind_dispersion,Wind dispersion,1.6882424,24
-cams_pm25,CAMS PM2.5 (now),1.4187328,24
-fut_temperature,Forecast temperature,1.2728304,24
-pm25_lag24,Measured PM2.5 24h ago,1.1798108,24
-month,Month,1.1324822,24
-cams_ratio,Measured / CAMS ratio (now),1.0001862,24
-pm_ratio,CAMS PM2.5 / PM10 ratio,0.9601602,24
-pm25_lag48,Measured PM2.5 48h ago,0.88742757,24
-wind_dir,Wind direction,0.8605196,24
-fut_wind_dir,Forecast wind direction,0.8397082,24
-fut_humidity,Forecast humidity,0.7093428,24
-so2,SO2,0.65236336,24
-heat_humidity,Heat x humidity,0.6407015,24
-cams_ratio_roll24,Measured / CAMS ratio (24h mean),0.5941904,24
-temperature,Temperature,0.5648322,24
-wind_speed,Wind speed,0.54687816,24
-pm25_lag1,Measured PM2.5 1h ago,0.53391844,24
-co,CO,0.49151227,24
-month_cos,month cos,0.48888752,24
-pressure,Pressure,0.48139182,24
-pm25_roll24,Measured PM2.5 24h mean,0.44503546,24
-pm25_std24,Measured PM2.5 24h volatility,0.44072202,24
-pm25_lag3,Measured PM2.5 3h ago,0.33977702,24
-ozone,Ozone,0.3369117,24
-pm25_roll12,Measured PM2.5 12h mean,0.31723207,24
-humidity,Humidity,0.31057438,24
-no2,NO2,0.3024567,24
-pm25_roll6,Measured PM2.5 6h mean,0.30166253,24
-hour,Hour of day,0.2931209,24
-hour_cos,hour cos,0.24277438,24
-fut_pressure,Forecast pressure,0.23577698,24
-pm25_lag12,Measured PM2.5 12h ago,0.22862792,24
-dow_sin,dow sin,0.21538782,24
-day_of_week,Day of week,0.19647418,24
-dow_cos,dow cos,0.19373736,24
-pm25_lag6,Measured PM2.5 6h ago,0.17092133,24
-month_sin,month sin,0.105829775,24
-hour_sin,hour sin,0.061592583,24
-fut_hour_cos,Target hour (cos),0.056250673,24
-is_rush_hour,Rush hour,0.024100587,24
-is_weekend,Weekend,0.013202191,24
-fut_hour_sin,Target hour (sin),0.010643387,24
-fut_is_rush_hour,Target hour is rush hour,0.0018934292,24
+cams_gap,Measured minus CAMS (now),6.7314157,24
+fut_cams_pm25,CAMS forecast for target hour,4.4799485,24
+fut_wind_speed,Forecast wind speed,3.2624137,24
+pm25_roll3,Measured PM2.5 3h mean,2.2793577,24
+cams_pm10,CAMS PM10,2.0196085,24
+wind_dispersion,Wind dispersion,1.4913764,24
+cams_pm25,CAMS PM2.5 (now),1.2359889,24
+fut_temperature,Forecast temperature,1.1191492,24
+cams_ratio,Measured / CAMS ratio (now),1.1037195,24
+month,Month,1.0972936,24
+pm25_lag24,Measured PM2.5 24h ago,1.0294429,24
+pm25_lag48,Measured PM2.5 48h ago,0.9873603,24
+pm_ratio,CAMS PM2.5 / PM10 ratio,0.9010734,24
+wind_dir,Wind direction,0.895053,24
+fut_wind_dir,Forecast wind direction,0.8714063,24
+fut_humidity,Forecast humidity,0.786927,24
+temperature,Temperature,0.77737683,24
+so2,SO2,0.7658582,24
+cams_ratio_roll24,Measured / CAMS ratio (24h mean),0.567679,24
+heat_humidity,Heat x humidity,0.56543165,24
+wind_speed,Wind speed,0.53985983,24
+co,CO,0.4874879,24
+pm25_std24,Measured PM2.5 24h volatility,0.4591584,24
+pm25_roll24,Measured PM2.5 24h mean,0.4507292,24
+month_cos,month cos,0.42698655,24
+pressure,Pressure,0.3957634,24
+humidity,Humidity,0.34318814,24
+no2,NO2,0.33312243,24
+pm25_lag1,Measured PM2.5 1h ago,0.32598245,24
+pm25_roll12,Measured PM2.5 12h mean,0.3222317,24
+ozone,Ozone,0.31653348,24
+hour,Hour of day,0.3005553,24
+fut_pressure,Forecast pressure,0.2770989,24
+pm25_lag3,Measured PM2.5 3h ago,0.2581503,24
+dow_sin,dow sin,0.23092061,24
+pm25_lag6,Measured PM2.5 6h ago,0.2292408,24
+pm25_roll6,Measured PM2.5 6h mean,0.22672816,24
+pm25_lag12,Measured PM2.5 12h ago,0.20249508,24
+day_of_week,Day of week,0.1948767,24
+dow_cos,dow cos,0.18277104,24
+hour_cos,hour cos,0.17678699,24
+month_sin,month sin,0.10131606,24
+fut_hour_cos,Target hour (cos),0.07884588,24
+hour_sin,hour sin,0.07527774,24
+is_rush_hour,Rush hour,0.022632765,24
+fut_hour_sin,Target hour (sin),0.012937802,24
+is_weekend,Weekend,0.01164094,24
+fut_is_rush_hour,Target hour is rush hour,0.006914137,24
