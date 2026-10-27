@@ -169,26 +169,32 @@ TRIVIAL = {str(i) for i in range(0, 13)} | {"24", "48", "72", "80", "100"}
 
 
 def numbers_in(obj) -> set[float]:
-    """Every number that appears in a tool output, in the forms a writer may use."""
-    found = set()
+    """Every number that appears in a tool output, as returned."""
     text = json.dumps(obj, default=str)
-    for m in NUMBER.findall(text):
-        v = float(m.replace(",", ""))
-        found.update({v, round(v, 1), round(v), round(v * 100, 1), round(v * 100)})
-    return found
+    return {float(m.replace(",", "")) for m in NUMBER.findall(text)}
 
 
 def ungrounded_numbers(answer: str, tool_outputs: list) -> list[str]:
-    """Numbers in the answer that no tool returned (within rounding)."""
-    allowed = set()
+    """Numbers in the answer that no tool returned.
+
+    A number passes only if some tool value, rounded to the same number of
+    decimals the answer used, gives exactly that number: "34.6" and "35" match
+    34.62, "35.0" does not. A fraction may be quoted as a percentage ("29.3%"
+    for 0.293) only when the answer writes the % sign.
+    """
+    values = set()
     for out in tool_outputs:
-        allowed |= numbers_in(out)
+        values |= numbers_in(out)
     bad = []
-    for token in NUMBER.findall(answer):
+    for m in NUMBER.finditer(answer):
+        token = m.group()
         if token in TRIVIAL:
             continue
-        v = float(token.replace(",", ""))
-        if not any(abs(v - a) <= 0.051 for a in allowed):
+        x = float(token.replace(",", ""))
+        decimals = len(token.split(".")[1]) if "." in token else 0
+        pct = answer[m.end():m.end() + 2].lstrip().startswith("%")
+        candidates = values | ({v * 100 for v in values} if pct else set())
+        if not any(abs(round(c, decimals) - x) < 1e-6 for c in candidates):
             bad.append(token)
     return bad
 
@@ -203,6 +209,7 @@ class Answer:
     grounded: bool = True
     ungrounded: list = field(default_factory=list)
     attempts: int = 1
+    first_draft_ungrounded: list = field(default_factory=list)  # what the verifier caught
 
 
 def _recording(tools):
@@ -257,15 +264,33 @@ class GeminiLLM:
                 time.sleep(min(delay + 1, 30))
 
 
+# A model that answers "the system has a technical issue" without calling any
+# tool has not tried. Those answers get one nudge to look the data up.
+NO_TRY = ("technical", "issue", "unavailable", "try again", "error",
+          "kharabi", "dobara", "masla", "maaf")
+
+
+def _gave_up(text, calls):
+    if not text.strip():
+        return True
+    return not calls and any(w in text.lower() for w in NO_TRY)
+
+
 def ask(question: str, llm=None, tools=TOOLS) -> Answer:
     llm = llm or GeminiLLM()
     wrapped, calls, outputs = _recording(tools)
 
     text = llm.run(question, wrapped)
-    bad = ungrounded_numbers(text, outputs)
     attempts = 1
+    if _gave_up(text, calls):
+        attempts += 1
+        text = llm.run(f"{question}\n\nUse the tools to look up the data, then answer.",
+                       wrapped)
+
+    bad = ungrounded_numbers(text, outputs)
+    first_bad = list(bad)
     if bad:
-        attempts = 2
+        attempts += 1
         retry = (f"{question}\n\nYour previous answer contained numbers that no tool "
                  f"returned: {', '.join(bad)}. Answer again using only numbers from "
                  "tool results.")
@@ -280,7 +305,7 @@ def ask(question: str, llm=None, tools=TOOLS) -> Answer:
 
     return Answer(text=text, tools_called=[c["name"] for c in calls],
                   tool_outputs=outputs, grounded=not bad, ungrounded=bad,
-                  attempts=attempts)
+                  attempts=attempts, first_draft_ungrounded=first_bad)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history: live scoring and the README count nights from it
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
@@ -77,6 +79,11 @@ jobs:
       - name: Score live track record
         run: python src/live_scoring.py
 
+      # Seeds wrong numbers into answers built from real tool outputs and
+      # counts how many the verifier blocks. No API key needed.
+      - name: Verifier stress test
+        run: python src/verifier_benchmark.py
+
       - name: Evaluate forecast analyst (only if a Gemini key is configured)
         if: ${{ env.GEMINI_API_KEY != '' }}
         continue-on-error: true
@@ -86,6 +93,8 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          python src/update_readme.py
+          git add README.md models/live_daily.csv models/verifier_benchmark.json
           git add data/forecast_72hr.csv data/recent_history.csv \
                   data/ground_history.csv \
                   models/all_results.json models/horizon_results.json \

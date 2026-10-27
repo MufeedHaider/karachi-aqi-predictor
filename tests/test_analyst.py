@@ -142,3 +142,47 @@ def test_rate_limit_is_retried_not_fatal(monkeypatch):
     llm.client = type("C", (), {"models": Models()})()
     llm.model = "x"
     assert llm.run("q", []) == "ok" and Models.calls == 3
+
+
+def test_decimals_must_match_the_precision_written():
+    outputs = [{"pm2_5": 34.62}]
+    assert ungrounded_numbers("34.6 or 35", outputs) == []
+    assert ungrounded_numbers("35.0", outputs) == ["35.0"]
+
+
+def test_percent_form_needs_the_percent_sign():
+    outputs = [{"skill": 0.293}]
+    assert ungrounded_numbers("29.3% better", outputs) == []
+    assert ungrounded_numbers("29.3 better", outputs) == ["29.3"]
+
+
+def test_first_draft_catches_are_recorded():
+    p = _peak()
+    llm = ScriptedLLM(["get_forecast"], ["It hits 187.3.", f"Peak {p['pm2_5']} at {p['time']}."])
+    a = ask("worst?", llm=llm)
+    assert a.first_draft_ungrounded == ["187.3"] and a.grounded
+
+
+def test_an_answer_that_skips_the_tools_gets_one_nudge():
+    p = _peak()
+
+    class GivesUpOnce:
+        calls = 0
+
+        def run(self, question, tools):
+            GivesUpOnce.calls += 1
+            if GivesUpOnce.calls == 1:
+                return "Sorry, the system has a technical issue."
+            {t.__name__: t for t in tools}["get_forecast"]()
+            return f"Peak {p['pm2_5']} at {p['time']}."
+
+    a = ask("worst?", llm=GivesUpOnce())
+    assert GivesUpOnce.calls == 2 and a.grounded and a.tools_called == ["get_forecast"]
+
+
+def test_verifier_stress_test():
+    import verifier_benchmark
+
+    r = verifier_benchmark.run(n=200)
+    assert r["correct_answers_wrongly_blocked"] == 0
+    assert r["catch_rate"] >= 0.75

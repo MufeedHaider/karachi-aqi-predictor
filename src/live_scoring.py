@@ -25,6 +25,7 @@ ARCHIVE_PATH = "data/forecast_archive.csv"
 GROUND_PATH = "data/ground_history.csv"
 FORECAST_PATH = "data/forecast_72hr.csv"
 RESULTS_PATH = "models/live_results.json"
+DAILY_PATH = "models/live_daily.csv"
 
 ARCHIVE_COLS = [
     "issued_at", "anchor", "timestamp", "horizon_hour",
@@ -114,8 +115,8 @@ def _mae(a, b):
     return float(np.mean(np.abs(np.asarray(a, float) - np.asarray(b, float))))
 
 
-def score(archive: pd.DataFrame, ground: pd.DataFrame) -> dict:
-    """Join forecasts to what was later measured and compute live skill."""
+def join(archive: pd.DataFrame, ground: pd.DataFrame) -> pd.DataFrame:
+    """Every archived forecast hour next to what was measured, and persistence."""
     g = ground.rename(columns={"pm2_5": "observed"})[["timestamp", "observed"]]
     g["timestamp"] = pd.to_datetime(g["timestamp"])
 
@@ -126,7 +127,45 @@ def score(archive: pd.DataFrame, ground: pd.DataFrame) -> dict:
     scored = a.merge(g, on="timestamp", how="inner")
     anchor_obs = g.rename(columns={"timestamp": "anchor", "observed": "persistence"})
     scored = scored.merge(anchor_obs, on="anchor", how="inner")
-    scored = scored.dropna(subset=["observed", "persistence", "pm2_5_predicted"])
+    return scored.dropna(subset=["observed", "persistence", "pm2_5_predicted"])
+
+
+def daily_scores(scored: pd.DataFrame) -> pd.DataFrame:
+    """One row per published forecast: its error, CAMS's error, and the running
+    error over every forecast published up to that day."""
+    if scored.empty:
+        return pd.DataFrame()
+    s = scored.sort_values(["anchor", "horizon_hour"]).copy()
+    s["err"] = (s["pm2_5_predicted"] - s["observed"]).abs()
+    s["cams_err"] = (s["cams_pm2_5"] - s["observed"]).abs()
+    s["pers_err"] = (s["persistence"] - s["observed"]).abs()
+    g = s.groupby("anchor")
+    day = pd.DataFrame({
+        "issued_from": g["anchor"].first(),
+        "hours_scored": g.size(),
+        "mae": g["err"].mean(),
+        "cams_mae": g["cams_err"].mean(),
+        "persistence_mae": g["pers_err"].mean(),
+        "observed_mean": g["observed"].mean(),
+    }).reset_index(drop=True)
+    day["beat_cams"] = day["mae"] < day["cams_mae"]
+    # running (pooled) MAE: every scored hour of every forecast so far
+    sums = g[["err", "cams_err", "pers_err"]].sum().cumsum().reset_index(drop=True)
+    n = g.size().cumsum().reset_index(drop=True)
+    day["running_mae"] = sums["err"] / n
+    day["running_cams_mae"] = sums["cams_err"] / n
+    day["running_persistence_mae"] = sums["pers_err"] / n
+    num = day.select_dtypes("number").columns
+    day[num] = day[num].round(3)
+    return day
+
+
+def score(archive: pd.DataFrame, ground: pd.DataFrame) -> dict:
+    """Join forecasts to what was later measured and compute live skill."""
+    a = archive.copy()
+    for col in ["issued_at", "anchor", "timestamp"]:
+        a[col] = pd.to_datetime(a[col])
+    scored = join(a, ground)
 
     out = {
         "generated_at": pd.Timestamp.now(tz="UTC").isoformat(),
@@ -146,6 +185,8 @@ def score(archive: pd.DataFrame, ground: pd.DataFrame) -> dict:
     out["median_publish_latency_hours"] = round(float(latency_h.median()), 1)
 
     out["period"] = f"{scored['timestamp'].min():%Y-%m-%d} to {scored['timestamp'].max():%Y-%m-%d}"
+    daily = daily_scores(scored)
+    out["days_beating_cams"] = f"{int(daily['beat_cams'].sum())} of {len(daily)}"
     out["overall"] = _summary(scored)
 
     for lo, hi in BUCKETS:
@@ -205,6 +246,7 @@ def main(argv=None):
 
     with open(RESULTS_PATH, "w") as f:
         json.dump(result, f, indent=2)
+    daily_scores(join(archive, ground)).to_csv(DAILY_PATH, index=False)
 
     print(f"Scored {result['n_forecasts_scored']} of {result['n_forecasts_issued']} "
           f"published forecasts ({result['n_points']} hourly points)")

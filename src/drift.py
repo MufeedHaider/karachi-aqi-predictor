@@ -21,13 +21,17 @@ from __future__ import annotations
 import json
 import os
 
+import numpy as np
 import pandas as pd
 
 FEATURED = "data/featured_data.csv"
 REPORT = "models/drift_report.json"
 RECENT_DAYS = 7
 SEASON_DAYS = 14
-MIN_REFERENCE_ROWS = 24 * 14
+# The feature table keeps a rolling year, so only the tail of last year's
+# window survives; one week of it is enough to compare against.
+MIN_REFERENCE_ROWS = 24 * 7
+HIST_BINS = 20
 
 WATCH = ["ground_pm25", "cams_pm25", "cams_gap", "wind_speed",
          "humidity", "temperature", "cams_pm10"]
@@ -48,8 +52,12 @@ def compare(reference, recent):
         level = "moderate"
     else:
         level = "stable"
+    edges = np.linspace(min(ref.quantile(0.005), rec.min()),
+                        max(ref.quantile(0.995), rec.max()), HIST_BINS + 1)
+    share = lambda x: (np.histogram(x.clip(edges[0], edges[-1]), edges)[0] / len(x)).round(4).tolist()
     return {
         "level": level,
+        "hist": {"edges": edges.round(3).tolist(), "reference": share(ref), "recent": share(rec)},
         "out_of_range": round(outside, 3),
         "shift_sd": round(shift, 2),
         "reference_mean": round(float(ref.mean()), 2),

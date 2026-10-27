@@ -1,0 +1,29 @@
+name: Tests
+
+# Runs the full test suite on every push and pull request, separately from the
+# nightly retrain, so the result shows as a check on each commit and as the
+# README badge.
+on:
+  push:
+    branches: [master]
+    paths-ignore: ["data/**", "models/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          python -m pytest tests -v --junitxml=report.xml | tee pytest.txt
+          echo "### Tests" >> "$GITHUB_STEP_SUMMARY"
+          tail -1 pytest.txt >> "$GITHUB_STEP_SUMMARY"

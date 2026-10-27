@@ -79,6 +79,24 @@ shap_df = load_shap()
 live = load_json("live_results.json")
 gate = load_json("gate_report.json")
 drift = load_json("drift_report.json")
+daily = load_csv("live_daily.csv", folder=MODELS)
+if daily is not None and "issued_from" in daily.columns:
+    daily["issued_from"] = pd.to_datetime(daily["issued_from"])
+
+
+@st.cache_data(ttl=900)
+def load_scored_hours():
+    """Every archived forecast hour joined to what was measured."""
+    arch_path = os.path.join(DATA, "forecast_archive.csv")
+    ground_path = os.path.join(DATA, "ground_history.csv")
+    if not (os.path.exists(arch_path) and os.path.exists(ground_path)):
+        return None
+    arch = pd.read_csv(arch_path, parse_dates=["issued_at", "anchor", "timestamp"])
+    ground = pd.read_csv(ground_path, parse_dates=["timestamp"])
+    return arch.merge(ground.rename(columns={"pm2_5": "observed"})[["timestamp", "observed"]],
+                      on="timestamp", how="left")
+
+
 has_band = fc_df is not None and {"pm2_5_p10", "pm2_5_p90"} <= set(fc_df.columns)
 
 if fc_df is None or hist_df is None:
@@ -122,7 +140,7 @@ with brand:
     st.markdown("### 🌫️ Karachi AQI")
 with nav:
     page = st.radio(
-        "Navigation", ["Dashboard", "Forecast", "Track record", "Analysis"],
+        "Navigation", ["Dashboard", "Forecast", "Scoreboard", "Data drift", "Analysis"],
         horizontal=True, label_visibility="collapsed", key="nav",
     )
 with clock:
@@ -409,9 +427,10 @@ elif page == "Forecast":
     )
 
 # ═════════════════════════════════════════════════════════════════════════════
-elif page == "Track record":
-    st.subheader("✅ Live track record")
-    st.caption("Every forecast this dashboard published, checked against what the monitors later measured.")
+elif page == "Scoreboard":
+    st.subheader("✅ Live scoreboard")
+    st.caption("Every forecast this app published, next to what the monitors measured once "
+               "those hours had passed. Nothing here is a backtest; it updates every night.")
 
     if live and live.get("overall"):
         o = live["overall"]
@@ -421,52 +440,135 @@ elif page == "Track record":
                     help=f"CAMS MAE {o['cams_MAE']:.2f} on the same hours")
         c[2].metric("vs persistence", f"{o['skill_vs_persistence']:+.0%}",
                     help=f"Persistence MAE {o['persistence_MAE']:.2f}")
-        c[3].metric("Forecasts scored", f"{live['n_forecasts_scored']}",
-                    f"{live['n_points']:,} hourly points", delta_color="off")
+        c[3].metric("Days beating CAMS", live.get("days_beating_cams", "—"),
+                    f"{live['n_points']:,} hours scored", delta_color="off")
         st.caption(f"{live.get('period', '')} · forecasts go live about "
                    f"{live.get('median_publish_latency_hours', '—')} h after their latest measurement")
-        buckets = live.get("buckets", {})
-        if buckets:
-            b = pd.DataFrame(buckets).T.reset_index().rename(columns={"index": "lead"})
-            fig = go.Figure()
-            fig.add_trace(go.Bar(x=b["lead"], y=b["MAE"], name="This model",
-                                 marker_color="#60a5fa"))
-            fig.add_trace(go.Bar(x=b["lead"], y=b["cams_MAE"], name="CAMS",
-                                 marker_color="#f87171"))
-            fig.add_trace(go.Bar(x=b["lead"], y=b["persistence_MAE"], name="Persistence",
-                                 marker_color="#94a3b8"))
-            fig.update_layout(height=300, barmode="group",
-                              yaxis=dict(gridcolor=GRID, title="MAE µg/m³"),
-                              legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=1.15),
-                              **PLOT)
-            st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
-        if live.get("interval_80"):
-            iv = live["interval_80"]
-            st.caption(f"80% range held the real value {iv['coverage']:.0%} of the time (target 80%).")
     else:
         st.info("No published forecasts have been scored yet.")
 
-    st.divider()
-    left, right = st.columns(2)
-    with left:
-        st.subheader("🚦 Last retrain")
-        if gate:
-            st.markdown(f"Accuracy gate: **{gate['decision'].upper()}**")
-            rows = [{"check": c["name"], "result": "pass" if c["passed"] else "FAIL",
-                     "detail": c["detail"]} for c in gate["checks"] + gate.get("warnings", [])]
-            st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
-        else:
-            st.caption("No gate report yet.")
-    with right:
-        st.subheader("🌡️ Input drift")
-        if drift:
-            st.markdown(f"Last 7 days vs {drift['reference']}: **{drift['overall']}**")
-            d = pd.DataFrame(drift["features"]).T.reset_index().rename(columns={"index": "input"})
-            keep = [c for c in ["input", "level", "out_of_range", "shift_sd"] if c in d.columns]
-            st.dataframe(d[keep], hide_index=True, width="stretch")
-        else:
-            st.caption("No drift report yet.")
+    hours = load_scored_hours()
+    if hours is not None and daily is not None and not daily.empty:
+        st.divider()
+        st.markdown("**Forecast vs what actually happened**")
+        scored_enough = daily[daily["hours_scored"] >= 24]["issued_from"]
+        options = sorted(daily["issued_from"], reverse=True)
+        default = options.index(scored_enough.max()) if not scored_enough.empty else 0
+        pick = st.selectbox("Forecast issued from", options, index=default,
+                            format_func=lambda t: f"{t:%a %d %b %Y, %H:00}")
+        one = hours[hours["anchor"] == pick].sort_values("timestamp")
+        fig = go.Figure()
+        if one["pm2_5_p10"].notna().any():
+            fig.add_trace(go.Scatter(x=one["timestamp"], y=one["pm2_5_p90"], mode="lines",
+                                     line=dict(width=0), showlegend=False, hoverinfo="skip"))
+            fig.add_trace(go.Scatter(x=one["timestamp"], y=one["pm2_5_p10"], mode="lines",
+                                     line=dict(width=0), fill="tonexty",
+                                     fillcolor="rgba(96,165,250,0.15)", name="80% range"))
+        fig.add_trace(go.Scatter(x=one["timestamp"], y=one["pm2_5_predicted"], mode="lines",
+                                 name="Forecast", line=dict(color="#60a5fa", width=2.5)))
+        fig.add_trace(go.Scatter(x=one["timestamp"], y=one["cams_pm2_5"], mode="lines",
+                                 name="CAMS forecast", line=dict(color="#f87171", width=1.5, dash="dash")))
+        fig.add_trace(go.Scatter(x=one["timestamp"], y=one["observed"], mode="lines+markers",
+                                 name="Measured", line=dict(color="#e2e8f0", width=2),
+                                 marker=dict(size=4)))
+        fig.update_layout(height=340, hovermode="x unified",
+                          xaxis=dict(gridcolor=GRID),
+                          yaxis=dict(gridcolor=GRID, title="PM2.5 µg/m³", rangemode="tozero"),
+                          legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=1.12), **PLOT)
+        st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+        row = daily[daily["issued_from"] == pick].iloc[0]
+        st.caption(f"This forecast: MAE {row['mae']:.2f} vs CAMS {row['cams_mae']:.2f} "
+                   f"over {int(row['hours_scored'])} measured hours"
+                   + (" · still being scored" if row["hours_scored"] < 72 else ""))
 
+        st.markdown("**Running error, every forecast so far**")
+        fig2 = go.Figure()
+        for col, name, colour, dash in [("running_mae", "This model", "#60a5fa", None),
+                                        ("running_cams_mae", "CAMS", "#f87171", "dash"),
+                                        ("running_persistence_mae", "Persistence", "#94a3b8", "dot")]:
+            fig2.add_trace(go.Scatter(x=daily["issued_from"], y=daily[col], mode="lines",
+                                      name=name, line=dict(color=colour, width=2, dash=dash)))
+        fig2.update_layout(height=280, hovermode="x unified",
+                           xaxis=dict(gridcolor=GRID),
+                           yaxis=dict(gridcolor=GRID, title="MAE µg/m³", rangemode="tozero"),
+                           legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=1.15), **PLOT)
+        st.plotly_chart(fig2, width="stretch", config={"displayModeBar": False})
+
+        st.markdown("**Day by day**")
+        table = daily.sort_values("issued_from", ascending=False).head(14).copy()
+        table["Forecast from"] = table["issued_from"].dt.strftime("%a %d %b")
+        table["Result"] = table["beat_cams"].map({True: "✓ beat CAMS", False: "✗ CAMS better"})
+        table = table.round(2)
+        st.dataframe(
+            table[["Forecast from", "mae", "cams_mae", "persistence_mae", "observed_mean",
+                   "hours_scored", "Result"]].rename(columns={
+                "mae": "Model MAE", "cams_mae": "CAMS MAE", "persistence_mae": "Persistence MAE",
+                "observed_mean": "Measured mean", "hours_scored": "Hours"}),
+            hide_index=True, width="stretch")
+
+    st.divider()
+    st.subheader("🚦 Last retrain")
+    if gate:
+        st.markdown(f"Accuracy gate: **{gate['decision'].upper()}**")
+        rows = [{"check": c["name"], "result": "pass" if c["passed"] else "FAIL",
+                 "detail": c["detail"]} for c in gate["checks"] + gate.get("warnings", [])]
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    else:
+        st.caption("No gate report yet.")
+
+# ═════════════════════════════════════════════════════════════════════════════
+elif page == "Data drift":
+    st.subheader("🌡️ Has the input data changed?")
+    if not drift:
+        st.info("No drift report yet.")
+    else:
+        st.caption(f"The last 7 days of model inputs compared with {drift['reference']}. "
+                   "Informational: drift never blocks a forecast, but it explains when live "
+                   "error rises.")
+        st.markdown(f"Overall: **{drift['overall']}**")
+        feats = drift["features"]
+        d = pd.DataFrame(feats).T.reset_index().rename(columns={"index": "input"})
+        if "out_of_range" in d.columns:
+            d["out_of_range"] = d["out_of_range"].map(lambda v: f"{float(v):.0%}" if pd.notna(v) else "—")
+        keep = [c for c in ["input", "level", "out_of_range", "shift_sd",
+                            "reference_mean", "recent_mean"] if c in d.columns]
+        st.dataframe(d[keep].rename(columns={
+            "out_of_range": "Outside training range", "shift_sd": "Mean shift (sd)",
+            "reference_mean": "Reference mean", "recent_mean": "Last 7 days mean"}),
+            hide_index=True, width="stretch")
+        with_hist = [k for k, v in feats.items() if v.get("hist")]
+        if with_hist:
+            name = st.selectbox("Compare distributions for", with_hist)
+            h = feats[name]["hist"]
+            mids = [(a + b) / 2 for a, b in zip(h["edges"][:-1], h["edges"][1:])]
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=mids, y=h["reference"], name="Reference",
+                                 marker_color="#94a3b8", opacity=0.6))
+            fig.add_trace(go.Bar(x=mids, y=h["recent"], name="Last 7 days",
+                                 marker_color="#60a5fa", opacity=0.75))
+            fig.update_layout(height=300, barmode="overlay",
+                              xaxis=dict(gridcolor=GRID, title=name),
+                              yaxis=dict(gridcolor=GRID, title="Share of hours", tickformat=".0%"),
+                              legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=1.15), **PLOT)
+            st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+        st.caption("Levels: major if over 20% of recent hours fall outside the reference range or "
+                   "the mean moves more than 1 sd; moderate above 5% or 0.5 sd.")
+
+    series = {"ground_pm25": "Measured PM2.5", "cams_pm25": "CAMS PM2.5",
+              "temperature": "Temperature", "humidity": "Humidity",
+              "wind_speed": "Wind speed", "pressure": "Pressure"}
+    available = [c for c in series if c in hist_df.columns]
+    if available:
+        st.divider()
+        st.markdown("**Last 30 days, daily average**")
+        col = st.selectbox("Input", available, format_func=series.get, key="drift_series")
+        daily_mean = hist_df.set_index("timestamp")[col].resample("D").mean()
+        fig = go.Figure(go.Scatter(x=daily_mean.index, y=daily_mean.values, mode="lines+markers",
+                                   line=dict(color="#60a5fa", width=2), marker=dict(size=5),
+                                   name=series[col]))
+        fig.update_layout(height=260, xaxis=dict(gridcolor=GRID),
+                          yaxis=dict(gridcolor=GRID, title=series[col]), **PLOT)
+        st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
 # ═════════════════════════════════════════════════════════════════════════════
 elif page == "Analysis":

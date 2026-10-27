@@ -1,6 +1,7 @@
 """
 Score the analyst on evals/analyst_eval.jsonl:
-grounded answers, first-try grounding, right tool (or a correct decline), latency.
+grounded answers, first-try grounding, right tool (or a correct decline), latency,
+and how often the number verifier caught an invented number in a first draft.
 
     GEMINI_API_KEY=... python src/run_analyst_evals.py
 """
@@ -65,12 +66,15 @@ def run(llm=None, cases=None, delay=None):
             "passed": all(verdict.values()),
             "tools_called": answer.tools_called if answer else [],
             "ungrounded": answer.ungrounded if answer else [],
+            "caught_in_first_draft": answer.first_draft_ungrounded if answer else [],
             "answer": answer.text if answer else None,
             "error": err,
             "latency_s": round(time.perf_counter() - start, 2),
         })
 
     n = len(rows)
+    answered = [r for r in rows if r["error"] is None]
+    caught = [r for r in answered if r["caught_in_first_draft"]]
     totals = {
         "n": n,
         "pass_rate": round(sum(r["passed"] for r in rows) / n, 3),
@@ -78,6 +82,12 @@ def run(llm=None, cases=None, delay=None):
         "first_try_grounded_rate": round(sum(r["first_try"] for r in rows) / n, 3),
         "tool_selection_rate": round(sum(r["right_tool"] for r in rows) / n, 3),
         "median_latency_s": sorted(r["latency_s"] for r in rows)[n // 2],
+        # The verifier's job, measured: first drafts that contained a number no
+        # tool returned, all of which were blocked from the user.
+        "first_drafts_with_invented_numbers": len(caught),
+        "first_draft_invention_rate": round(len(caught) / len(answered), 3) if answered else None,
+        "invented_numbers_shown_to_user": sum(1 for r in answered if not r["grounded"]
+                                              and r["answer"] and "here is the data" not in r["answer"]),
     }
     return {"totals": totals, "cases": rows}
 
@@ -94,6 +104,8 @@ def main():
     print(f"  grounded on first try   {t['first_try_grounded_rate']:.0%}")
     print(f"  right tool / declines   {t['tool_selection_rate']:.0%}")
     print(f"  median latency          {t['median_latency_s']} s")
+    print(f"  verifier caught invented numbers in {t['first_drafts_with_invented_numbers']} "
+          f"first drafts ({t['first_draft_invention_rate']:.0%}), all blocked")
     for r in result["cases"]:
         if not r["passed"]:
             print(f"  FAIL {r['id']}: tools={r['tools_called']} ungrounded={r['ungrounded']} {r['error'] or ''}")

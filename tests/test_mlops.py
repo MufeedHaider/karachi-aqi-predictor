@@ -209,3 +209,38 @@ def test_live_score_uses_anchor_measurement_as_persistence():
     assert o["persistence_MAE"] == pytest.approx(10.0)
     assert o["skill_vs_cams"] == pytest.approx(0.9)
     assert out["median_publish_latency_hours"] == pytest.approx(5.0)
+
+
+def test_drift_report_carries_histograms_for_the_dashboard():
+    rng = np.random.default_rng(8)
+    out = compare(rng.normal(30, 8, 5000), rng.normal(32, 8, 168))
+    h = out["hist"]
+    assert len(h["edges"]) == len(h["reference"]) + 1 == len(h["recent"]) + 1
+    assert abs(sum(h["reference"]) - 1) < 1e-3 and abs(sum(h["recent"]) - 1) < 1e-3
+
+
+def test_daily_scoreboard_rows_and_running_error():
+    from live_scoring import daily_scores, join
+
+    a1 = forecast_to_archive_rows(_published("2026-09-01 23:00", [21.0] * 24, [10.0] * 24),
+                                  "2026-09-02T04:00:00+00:00")
+    a2 = forecast_to_archive_rows(_published("2026-09-02 23:00", [23.0] * 24, [30.0] * 24),
+                                  "2026-09-03T04:00:00+00:00")
+    ts = pd.date_range("2026-09-01 23:00", periods=50, freq="h")
+    ground = pd.DataFrame({"timestamp": ts, "pm2_5": 20.0})
+    day = daily_scores(join(pd.concat([a1, a2]), ground))
+    assert len(day) == 2
+    assert day["mae"].tolist() == [1.0, 3.0]
+    assert day["beat_cams"].tolist() == [True, True]
+    assert day["running_mae"].iloc[-1] == pytest.approx(2.0)
+
+
+def test_readme_block_is_replaced_and_nothing_else(tmp_path, monkeypatch):
+    import update_readme
+
+    readme = tmp_path / "README.md"
+    readme.write_text("intro\n<!-- RESULTS:START -->\nold\n<!-- RESULTS:END -->\noutro\n")
+    monkeypatch.setattr(update_readme, "README", str(readme))
+    monkeypatch.setattr(update_readme, "render", lambda: "| new | row |")
+    update_readme.main()
+    assert readme.read_text() == "intro\n<!-- RESULTS:START -->\n| new | row |\n<!-- RESULTS:END -->\noutro\n"
