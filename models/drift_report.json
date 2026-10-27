@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T04:08:34.250500+00:00",
+  "generated_at": "2026-10-27T04:29:35.186073+00:00",
   "recent_window": "last 7 days",
   "reference": "all earlier data",
   "n_recent": 168,
@@ -8,51 +8,51 @@
     "ground_pm25": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.05,
-      "reference_mean": 45.22,
-      "recent_mean": 43.5
+      "shift_sd": 0.08,
+      "reference_mean": 45.17,
+      "recent_mean": 47.88
     },
     "cams_pm25": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.24,
-      "reference_mean": 28.74,
-      "recent_mean": 31.82
+      "shift_sd": 0.23,
+      "reference_mean": 28.75,
+      "recent_mean": 31.62
     },
     "cams_gap": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.17,
-      "reference_mean": 16.48,
-      "recent_mean": 11.68
+      "shift_sd": 0.01,
+      "reference_mean": 16.42,
+      "recent_mean": 16.26
     },
     "wind_speed": {
       "level": "moderate",
-      "out_of_range": 0.012,
-      "shift_sd": 0.61,
-      "reference_mean": 11.07,
-      "recent_mean": 8.35
+      "out_of_range": 0.006,
+      "shift_sd": 0.63,
+      "reference_mean": 11.05,
+      "recent_mean": 8.24
     },
     "humidity": {
       "level": "moderate",
-      "out_of_range": 0.054,
-      "shift_sd": 0.33,
-      "reference_mean": 66.51,
-      "recent_mean": 60.07
+      "out_of_range": 0.065,
+      "shift_sd": 0.38,
+      "reference_mean": 66.57,
+      "recent_mean": 59.12
     },
     "temperature": {
       "level": "moderate",
-      "out_of_range": 0.131,
-      "shift_sd": 0.63,
+      "out_of_range": 0.119,
+      "shift_sd": 0.58,
       "reference_mean": 26.32,
-      "recent_mean": 29.21
+      "recent_mean": 29.02
     },
     "cams_pm10": {
       "level": "stable",
       "out_of_range": 0.0,
-      "shift_sd": 0.09,
-      "reference_mean": 54.14,
-      "recent_mean": 56.48
+      "shift_sd": 0.06,
+      "reference_mean": 54.17,
+      "recent_mean": 55.74
     }
   }
 }

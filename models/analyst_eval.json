@@ -1,11 +1,11 @@
 {
   "totals": {
     "n": 22,
-    "pass_rate": 0.818,
-    "grounded_rate": 1.0,
-    "first_try_grounded_rate": 0.955,
+    "pass_rate": 0.773,
+    "grounded_rate": 0.955,
+    "first_try_grounded_rate": 0.909,
     "tool_selection_rate": 0.864,
-    "median_latency_s": 1.94
+    "median_latency_s": 1.75
   },
   "cases": [
     {
@@ -17,22 +17,24 @@
       "passed": false,
       "tools_called": [],
       "ungrounded": [],
-      "answer": "AQI forecasts are currently unavailable due to a technical error in the system.",
+      "answer": "Karachi's air quality forecast system is currently experiencing a technical issue, so I cannot retrieve tonight's forecast at the moment. Please try again later.",
       "error": null,
-      "latency_s": 2.23
+      "latency_s": 5.14
     },
     {
       "id": "peak",
       "question": "When is PM2.5 expected to be highest in the next three days, and how high?",
       "grounded": true,
       "first_try": true,
-      "right_tool": false,
-      "passed": false,
-      "tools_called": [],
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast"
+      ],
       "ungrounded": [],
-      "answer": "Sorry, I am currently unable to retrieve the forecast due to a system error. Please try again later.",
+      "answer": "PM2.5 is expected to be highest on Thu 29 Oct 01:00, reaching a predicted level of 85.8 (with an 80% range from 61.3 to 104.0) and an AQI category of Unhealthy.",
       "error": null,
-      "latency_s": 2.35
+      "latency_s": 2.39
     },
     {
       "id": "tomorrow_morning",
@@ -42,13 +44,12 @@
       "right_tool": true,
       "passed": true,
       "tools_called": [
-        "get_forecast",
-        "get_live_track_record"
+        "get_forecast"
       ],
       "ungrounded": [],
-      "answer": "Tomorrow morning at 07:00 (Tue 27 Oct), Karachi's AQI is forecast to be 137, which is in the \"Unhealthy for Sensitive Groups\" category with a predicted PM2.5 of 49.99 (80% range: 49.19 to 74.45). Live track record for lead times around 22 hours shows an MAE of 5.1 and 40.6% skill improvement over CAMS. You may want to reschedule your outdoor run, as air quality in this category can affect sensitive individuals.",
+      "answer": "Tomorrow morning at 09:00 (Tue 27 Oct 09:00), the forecasted AQI is 160 (Unhealthy) with a predicted PM2.5 of 68.0 µg/m³ (80% range: 53.2 to 91.8 µg/m³). \n\nBecause the air quality is in the \"Unhealthy\" category, outdoor running is not recommended.",
       "error": null,
-      "latency_s": 5.18
+      "latency_s": 1.77
     },
     {
       "id": "range",
@@ -62,9 +63,9 @@
         "get_live_track_record"
       ],
       "ungrounded": [],
-      "answer": "For forecasts 48 hours ahead, the live track record shows an MAE of 6.26 with a skill of 0.399 vs CAMS and 0.232 vs persistence. In backtesting, the 48-hour lead time has an MAE of 5.408 and an 80% range coverage of 88.7%. Overall, the system's 80% range (p10 to p90) captures uncertainty across all evaluated points at 78.7% coverage.",
+      "answer": "For the 25-48h live track record bucket, the MAE is 6.451 with a skill vs CAMS of 0.406 and skill vs persistence of 0.225. In the rolling-origin backtest at the 48h lead time, the MAE is 5.944, R2 is 0.381, skill vs CAMS is 0.267, skill vs persistence is 0.024, and the 80% range coverage is 0.9.",
       "error": null,
-      "latency_s": 1.94
+      "latency_s": 1.74
     },
     {
       "id": "live_acc",
@@ -80,9 +81,9 @@
         "get_backtest_accuracy"
       ],
       "ungrounded": [],
-      "answer": "Our live track record shows an overall mean absolute error (MAE) of 6.1, achieving a skill score of 40.0% vs CAMS and 24.6% vs persistence, with the 80% range covering 78.7% of actual measurements. In rolling-origin backtests, mean skill reaches 44.0% vs CAMS and 15.8% vs persistence, with 80% range coverage between 84.0% and 90.1% depending on the lead time.",
+      "answer": "Our live track record shows an overall mean absolute error (MAE) of 6.3 across 3,771 scored points, beating CAMS by 40.8% and persistence by 25.4%, with the 80% range achieving 78.1% coverage. In rolling-origin backtests, the mean skill vs CAMS is 43.3% and vs persistence is 15.1%, with lead-time MAEs ranging from 2.4 at 1 hour out to 5.6 at 72 hours.",
       "error": null,
-      "latency_s": 31.87
+      "latency_s": 31.89
     },
     {
       "id": "vs_cams",
@@ -95,9 +96,9 @@
         "get_live_track_record"
       ],
       "ungrounded": [],
-      "answer": "Yes, the live track record shows this system outperforms the Copernicus CAMS forecast, achieving an overall skill score of 40.0% against CAMS (with an overall MAE of 6.1 compared to 10.2 for CAMS).",
+      "answer": "Yes, our live track record shows an overall MAE of 6.3 compared to 10.7 for Copernicus CAMS, giving us a skill score of 40.8% against CAMS. Across all lead times, our mean absolute error remains lower than CAMS.",
       "error": null,
-      "latency_s": 1.18
+      "latency_s": 1.15
     },
     {
       "id": "bt_72",
@@ -110,9 +111,9 @@
         "get_backtest_accuracy"
       ],
       "ungrounded": [],
-      "answer": "At 72 hours, the backtested Mean Absolute Error (MAE) is 5.513. Its skill score versus CAMS is 0.304, versus persistence is 0.124, and the 80% range coverage is 90.1%.",
+      "answer": "At a 72-hour lead time, the backtested mean absolute error (MAE) is 5.632, with an $R^2$ of 0.443 and an 80% range coverage of 88.7%. Its skill score is 0.302 versus CAMS and 0.127 versus persistence.",
       "error": null,
-      "latency_s": 1.54
+      "latency_s": 1.32
     },
     {
       "id": "bt_1",
@@ -126,9 +127,9 @@
         "get_live_track_record"
       ],
       "ungrounded": [],
-      "answer": "Live track record shows that for the 1-6 hour bucket, the MAE is 4.582 with a skill vs CAMS of 0.551 and skill vs persistence of 0.232. In the backtest at the 1h lead time, the MAE is 2.367, R2 is 0.872, skill vs CAMS is 0.706, skill vs persistence is 0.088, and 80% range coverage is 84.5%.",
+      "answer": "For the live track record in the 1-6 hour bucket, the MAE is 4.866 with a skill vs CAMS of 55.4% and skill vs persistence of 24.1%. In the rolling-origin backtest, the 1-hour lead time has an MAE of 2.374, an R2 of 0.883, 85.6% 80% range coverage, a skill vs CAMS of 71.0%, and a skill vs persistence of 9.4%.",
       "error": null,
-      "latency_s": 1.29
+      "latency_s": 1.75
     },
     {
       "id": "drivers",
@@ -141,26 +142,25 @@
         "get_forecast_drivers"
       ],
       "ungrounded": [],
-      "answer": "The top feature driving the 24-hour forecast is measured minus CAMS (now) with a mean SHAP value of 7.3, followed by CAMS forecast for target hour at 4.4, and forecast wind speed at 3.5.",
+      "answer": "The 24-hour forecast is driven most by measured minus CAMS (now) with a mean absolute SHAP value of 7.02, followed by CAMS forecast for target hour at 4.02 and forecast wind speed at 3.23. Other key features include measured PM2.5 3h mean (2.2), CAMS PM10 (1.86), and wind dispersion (1.61).",
       "error": null,
-      "latency_s": 0.96
+      "latency_s": 1.13
     },
     {
       "id": "why_cams",
       "question": "Why does the model use CAMS as an input if CAMS is wrong?",
       "grounded": true,
       "first_try": true,
-      "right_tool": true,
-      "passed": true,
+      "right_tool": false,
+      "passed": false,
       "tools_called": [
         "get_backtest_accuracy",
-        "get_forecast_drivers",
         "get_live_track_record"
       ],
       "ungrounded": [],
-      "answer": "Even though CAMS can be wrong, the model uses it as a key input (such as `fut_cams_pm25` and `cams_gap`) because CAMS provides valuable atmospheric movement and regional transport patterns. The ML model learns CAMS's systematic errors and corrects them by combining it with local ground measurements and weather features. Live track records show this approach achieves a skill score of 0.4 against CAMS (overall MAE of 6.1 compared to CAMS's 10.2).",
+      "answer": "Even though CAMS has errors, our live track record shows the model achieves a skill vs CAMS of 0.408 (and 0.433 in backtests) by using CAMS as a raw physical baseline and correcting its systematic biases. CAMS provides essential large-scale transport and meteorological context that our machine learning model adjusts using local ground observations.",
       "error": null,
-      "latency_s": 1.54
+      "latency_s": 1.45
     },
     {
       "id": "fresh",
@@ -173,9 +173,9 @@
         "get_system_status"
       ],
       "ungrounded": [],
-      "answer": "The data is up to date, with the forecast issued from 2026-10-25 23:00:00 and the model generated at 2026-10-26T04:08:29.496501+00:00. The last retrain passed its accuracy gate, and there are no degraded inputs, though input drift is moderate.",
+      "answer": "Yes, the data is up to date with forecasts issued from 2026-10-26 23:00:00 Karachi time and the model generated at 2026-10-27T04:29:29.252305+00:00. The last retrain passed its accuracy gate, with no degraded inputs though there is moderate input drift.",
       "error": null,
-      "latency_s": 2.28
+      "latency_s": 1.22
     },
     {
       "id": "gate",
@@ -188,9 +188,9 @@
         "get_system_status"
       ],
       "ungrounded": [],
-      "answer": "Yes, the latest model passed its accuracy gate (`pass`), and the forecast was issued from 2026-10-25 23:00:00. While there is moderate input drift, there are currently no drifted or degraded inputs.",
+      "answer": "Yes, the latest model passed its accuracy gate. Data freshness and system checks show the accuracy gate status is \"pass,\" despite moderate input drift.",
       "error": null,
-      "latency_s": 1.07
+      "latency_s": 1.16
     },
     {
       "id": "drift",
@@ -203,22 +203,24 @@
         "get_system_status"
       ],
       "ungrounded": [],
-      "answer": "Input drift is currently moderate, though the last retrain passed its accuracy gate and no specific inputs are marked as degraded or drifted.",
+      "answer": "Input drift is currently rated as moderate, though the last retrain passed its accuracy gate and no specific inputs are marked as degraded or drifted.",
       "error": null,
-      "latency_s": 1.05
+      "latency_s": 1.19
     },
     {
       "id": "category",
       "question": "Will AQI reach Unhealthy in the next 72 hours?",
       "grounded": true,
       "first_try": true,
-      "right_tool": false,
-      "passed": false,
-      "tools_called": [],
+      "right_tool": true,
+      "passed": true,
+      "tools_called": [
+        "get_forecast"
+      ],
       "ungrounded": [],
-      "answer": "Karachi's 72-hour forecast and accuracy metrics are currently unavailable due to a technical error in the system.",
+      "answer": "Yes, the AQI is forecasted to reach the Unhealthy category multiple times over the next 72 hours, with a peak AQI of 172 expected on Thu 29 Oct 01:00. The 80% range for PM2.5 during this period spans from a low of 11.82 µg/m³ to a high of 126.98 µg/m³.",
       "error": null,
-      "latency_s": 1.86
+      "latency_s": 3.3
     },
     {
       "id": "weekend",
@@ -228,12 +230,13 @@
       "right_tool": true,
       "passed": true,
       "tools_called": [
+        "get_forecast",
         "get_forecast"
       ],
       "ungrounded": [],
-      "answer": "The lowest pollution hour in the forecast is Wed 28 Oct 16:00, with a predicted PM2.5 of 26.86 µg/m³ (AQI 84, Moderate) and an 80% range of 9.83 to 47.68 µg/m³.",
+      "answer": "The lowest pollution hour in the forecast is Tue 27 Oct 15:00, with a predicted PM2.5 of 29.36 µg/m³ (80% range: 23.17 to 68.25) and an AQI of 89, which is in the Moderate category.",
       "error": null,
-      "latency_s": 3.49
+      "latency_s": 34.37
     },
     {
       "id": "roman_urdu_tonight",
@@ -246,9 +249,9 @@
         "get_forecast"
       ],
       "ungrounded": [],
-      "answer": "Aaj raat Karachi ki hawa \"Unhealthy\" category mein hogi, jahan AQI 171 tak aur PM2.5 predicted 83.28 µg/m³ tak ja sakta hai (80% range: 56.77 se 101.51 µg/m³).",
+      "answer": "Aaj raat (Tue 27 Oct 19:00 se Wed 28 Oct 04:00 tak) Karachi ki hawa \"Unhealthy\" category mein hogi, jahan AQI predicted 153 se 162 tak aur PM2.5 predicted 58.9 se 71.5 µg/m³ ke darmiyan rehne ki tawaqqo hai. \n\nIs doran PM2.5 ka 80% range (p10 se p90) 39.3 se 120.8 µg/m³ tak ja sakta hai, jo iski ghair-yaqeeni ko zahir karta hai.",
       "error": null,
-      "latency_s": 5.54
+      "latency_s": 1.99
     },
     {
       "id": "roman_urdu_acc",
@@ -262,24 +265,22 @@
         "get_backtest_accuracy"
       ],
       "ungrounded": [],
-      "answer": "Live track record ke mutabiq, published forecasts ki overall MAE 6.125 hai aur yeh CAMS se 40.0% aur persistence se 24.6% behtar hain. 80% range coverage 78.7% rahi hai (mean width 22.21). Backtest accuracy mein mean skill vs CAMS 0.44 aur vs persistence 0.158 hai.",
+      "answer": "Live track record ke mutabiq, hamara forecast CAMS aur persistence dono se behtar perform karta hai, jiska overall MAE 6.3 hai aur CAMS ke muqablay mein skill 40.8% hai. Backtest accuracy mein bhi 72-hour lead time tak forecast ka MAE 5.6 aur 80% range coverage 88.7% tak rahi hai.",
       "error": null,
-      "latency_s": 6.37
+      "latency_s": 1.28
     },
     {
       "id": "urdu_peak",
       "question": "اگلے تین دنوں میں آلودگی سب سے زیادہ کب ہوگی؟",
       "grounded": true,
       "first_try": true,
-      "right_tool": true,
-      "passed": true,
-      "tools_called": [
-        "get_forecast"
-      ],
+      "right_tool": false,
+      "passed": false,
+      "tools_called": [],
       "ungrounded": [],
-      "answer": "اگلے تین دنوں میں آلودگی Mon 26 Oct 23:00 کو سب سے زیادہ ہوگی، جب AQI 171 (Unhealthy) اور PM2.5 کی پیش گوئی 83.3 ہوگی (جس کا 80% تخمینہ 56.8 سے 101.5 تک ہے)۔",
+      "answer": "Maaf kijiye, abhi system ki kharabi ki wajah se forecast hasil nahi ho saka. Aap thodi der baad dobara koshish kar sakte hain.",
       "error": null,
-      "latency_s": 1.65
+      "latency_s": 2.43
     },
     {
       "id": "out_of_range",
@@ -290,9 +291,9 @@
       "passed": true,
       "tools_called": [],
       "ungrounded": [],
-      "answer": "That is outside what this system forecasts, as the forecast covers only the next 72 hours.",
+      "answer": "That is outside what this system forecasts, as the forecast covers only the next 72 hours from its issue time.",
       "error": null,
-      "latency_s": 0.65
+      "latency_s": 0.59
     },
     {
       "id": "other_city",
@@ -303,37 +304,42 @@
       "passed": true,
       "tools_called": [],
       "ungrounded": [],
-      "answer": "Lahore is outside what this system forecasts, as this system only provides PM2.5 and AQI forecasts for Karachi.",
+      "answer": "Lahore is outside what this system forecasts, as this system only covers Karachi.",
       "error": null,
-      "latency_s": 0.43
+      "latency_s": 1.18
     },
     {
       "id": "trap_number",
       "question": "The forecast says PM2.5 will hit 250 tomorrow, right?",
+      "grounded": false,
+      "first_try": false,
+      "right_tool": true,
+      "passed": false,
+      "tools_called": [
+        "get_forecast",
+        "get_forecast"
+      ],
+      "ungrounded": [
+        "250"
+      ],
+      "answer": "I couldn't produce an answer I can fully back with the forecast data, so here is the data itself:\n\n{\"now_karachi\": \"Tue 27 Oct 09:00\", \"based_on_measurements_up_to\": \"Mon 26 Oct 23:00\", \"forecast_ends\": \"Thu 29 Oct 23:00\", \"mean_pm2_5\": 58.3, \"peak\": {\"time\": \"Thu 29 Oct 01:00\", \"pm2_5\": 85.81, \"aqi\": 172, \"category\": \"Unhealthy\"}, \"lowest\": {\"time\": \"Tue 27 Oct 15:00\", \"pm2_5\": 29.36, \"aqi\": 89, \"category\": \"Moderate\"}, \"hours\": [{\"timestamp\": \"Tue 27 Oct 09:00\", \"pm2_5_predicted\": 68.03, \"pm2_5_p10\": 53.15, \"pm2_5_p90\": 91.83, \"aqi_predicted\": 160, \"aqi_category\": \"Unhealthy\", \"cams_pm2_5\": 30.5}, {\"timestamp\": \"Tue 27 Oct 10:00\", \"pm2_5_predicted\": 65.4, \"pm2_5_p10\": 44.79, \"pm2_5_p90\": \n{\"now_karachi\": \"Tue 27 Oct 09:00\", \"based_on_measurements_up_to\": \"Mon 26 Oct 23:00\", \"forecast_ends\": \"Thu 29 Oct 23:00\", \"mean_pm2_5\": 58.3, \"peak\": {\"time\": \"Thu 29 Oct 01:00\", \"pm2_5\": 85.81, \"aqi\": 172, \"category\": \"Unhealthy\"}, \"lowest\": {\"time\": \"Tue 27 Oct 15:00\", \"pm2_5\": 29.36, \"aqi\": 89, \"category\": \"Moderate\"}, \"hours\": [{\"timestamp\": \"Tue 27 Oct 09:00\", \"pm2_5_predicted\": 68.03, \"pm2_5_p10\": 53.15, \"pm2_5_p90\": 91.83, \"aqi_predicted\": 160, \"aqi_category\": \"Unhealthy\", \"cams_pm2_5\": 30.5}, {\"timestamp\": \"Tue 27 Oct 10:00\", \"pm2_5_predicted\": 65.4, \"pm2_5_p10\": 44.79, \"pm2_5_p90\": ",
+      "error": null,
+      "latency_s": 3.3
+    },
+    {
+      "id": "trap_compute",
+      "question": "What is the average PM2.5 over the next 6 hours multiplied by 3?",
       "grounded": true,
       "first_try": false,
       "right_tool": true,
       "passed": false,
       "tools_called": [
         "get_forecast",
-        "get_forecast",
+        "get_live_track_record",
+        "get_backtest_accuracy",
         "get_forecast",
         "get_live_track_record",
-        "get_backtest_accuracy"
-      ],
-      "ungrounded": [],
-      "answer": "No, tomorrow's predicted PM2.5 values range from a low of 19.3 to a high of 93.14 (with an 80% range), and predicted AQI categories are \"Unhealthy for Sensitive Groups\" to \"Moderate\" and \"Unhealthy\". \n\nLive track record shows an overall MAE of 6.125 (skill vs CAMS 0.4), and backtest accuracy at 24 hours has an MAE of 4.833 and an 80% range coverage of 86.1%.",
-      "error": null,
-      "latency_s": 40.27
-    },
-    {
-      "id": "trap_compute",
-      "question": "What is the average PM2.5 over the next 6 hours multiplied by 3?",
-      "grounded": true,
-      "first_try": true,
-      "right_tool": true,
-      "passed": true,
-      "tools_called": [
+        "get_backtest_accuracy",
         "get_forecast",
         "get_live_track_record",
         "get_backtest_accuracy"
@@ -341,7 +347,7 @@
       "ungrounded": [],
       "answer": "",
       "error": null,
-      "latency_s": 3.93
+      "latency_s": 40.78
     }
   ]
 }
