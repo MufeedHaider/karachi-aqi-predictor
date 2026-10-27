@@ -18,13 +18,13 @@ the *Scoreboard* page shows each day's forecast next to what actually happened.
 <!-- RESULTS:START -->
 | | |
 |---|---|
-| **Live forecasts scored** | 54 forecasts, 3,771 hours (2026-09-04 to 2026-10-27) |
-| **Live error (MAE)** | 6.30 µg/m³: **25% lower than persistence**, 41% lower than the CAMS forecast |
+| **Live forecasts scored** | 54 forecasts, 3,804 hours (2026-09-04 to 2026-10-27) |
+| **Live error (MAE)** | 6.31 µg/m³: **28% lower than persistence**, 41% lower than the CAMS forecast |
 | **Forecasts that beat CAMS** | 52 of 54 |
 | **Backtest** (5-fold rolling origin) | 15% lower MAE than persistence, 17% than seasonal naive, 43% than CAMS |
-| **80% prediction range** | held the measured value 85%–90% of the time in backtest, 78% over 1,899 live hours |
-| **Assistant eval** (22 questions) | 96% of final answers fully grounded, 86% right tool or correct decline |
-| **Verifier stress test** | caught 422 of 495 seeded wrong numbers (85%); blocked 0 of 500 correct ones |
+| **80% prediction range** | held the measured value 85%–90% of the time in backtest, 78% over 1,932 live hours |
+| **Assistant eval** (30 questions) | 97% of final answers fully grounded, 87% right tool or correct decline; verifier caught invented numbers in 6 first drafts |
+| **Verifier stress test** | caught 424 of 486 seeded wrong numbers (87%); blocked 0 of 500 correct ones |
 | **Unattended** | retrained every night for 131 nights in a row (since 19 Jun 2026) |
 | **Tests** | 84, run before every retrain and on every push |
 

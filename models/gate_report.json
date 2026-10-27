@@ -9,17 +9,17 @@
     {
       "name": "beats persistence",
       "passed": true,
-      "detail": "mean skill vs persistence +15.1%"
+      "detail": "mean skill vs persistence +15.0%"
     },
     {
       "name": "no regression vs CAMS",
       "passed": true,
-      "detail": "+44.0% -> +43.3% (drop +0.7%, limit 5%)"
+      "detail": "+43.3% -> +43.3% (drop +0.0%, limit 5%)"
     },
     {
       "name": "no regression at 24h",
       "passed": true,
-      "detail": "MAE 4.83 -> 4.91 (+1.6%, limit 15%)"
+      "detail": "MAE 4.91 -> 4.91 (-0.1%, limit 15%)"
     }
   ],
   "warnings": [
@@ -36,7 +36,7 @@
     {
       "name": "interval coverage 6h",
       "passed": true,
-      "detail": "86.1% (target 80%, warn outside 70%-90%)"
+      "detail": "86.2% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 12h",
