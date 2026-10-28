@@ -18,17 +18,17 @@ the *Scoreboard* page shows each day's forecast next to what actually happened.
 <!-- RESULTS:START -->
 | | |
 |---|---|
-| **Live forecasts scored** | 54 forecasts, 3,804 hours (2026-09-04 to 2026-10-27) |
-| **Live error (MAE)** | 6.31 µg/m³: **28% lower than persistence**, 41% lower than the CAMS forecast |
-| **Forecasts that beat CAMS** | 52 of 54 |
-| **Backtest** (5-fold rolling origin) | 15% lower MAE than persistence, 17% than seasonal naive, 43% than CAMS |
-| **80% prediction range** | held the measured value 85%–90% of the time in backtest, 78% over 1,932 live hours |
-| **Assistant eval** (30 questions) | 97% of final answers fully grounded, 87% right tool or correct decline; verifier caught invented numbers in 6 first drafts |
-| **Verifier stress test** | caught 424 of 486 seeded wrong numbers (87%); blocked 0 of 500 correct ones |
+| **Live forecasts scored** | 55 forecasts, 3,843 hours (2026-09-04 to 2026-10-28) |
+| **Live error (MAE)** | 6.49 µg/m³: **28% lower than persistence**, 42% lower than the CAMS forecast |
+| **Forecasts that beat CAMS** | 53 of 55 |
+| **Backtest** (5-fold rolling origin) | 14% lower MAE than persistence, 16% than seasonal naive, 43% than CAMS |
+| **80% prediction range** | held the measured value 85%–91% of the time in backtest, 78% over 1,971 live hours |
+| **Assistant eval** (30 questions) | 93% of final answers fully grounded, 90% right tool or correct decline; verifier caught invented numbers in 3 first drafts |
+| **Verifier stress test** | caught 426 of 489 seeded wrong numbers (87%); blocked 0 of 500 correct ones |
 | **Unattended** | retrained every night for 131 nights in a row (since 19 Jun 2026) |
 | **Tests** | 84, run before every retrain and on every push |
 
-<sub>Updated automatically by the nightly job · 2026-10-27</sub>
+<sub>Updated automatically by the nightly job · 2026-10-28</sub>
 <!-- RESULTS:END -->
 
 Persistence ("PM2.5 stays as it is now") is the honest headline baseline.
