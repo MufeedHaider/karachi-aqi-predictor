@@ -18,17 +18,17 @@ the *Scoreboard* page shows each day's forecast next to what actually happened.
 <!-- RESULTS:START -->
 | | |
 |---|---|
-| **Live forecasts scored** | 55 forecasts, 3,843 hours (2026-09-04 to 2026-10-28) |
-| **Live error (MAE)** | 6.49 µg/m³: **28% lower than persistence**, 42% lower than the CAMS forecast |
-| **Forecasts that beat CAMS** | 53 of 55 |
-| **Backtest** (5-fold rolling origin) | 14% lower MAE than persistence, 16% than seasonal naive, 43% than CAMS |
-| **80% prediction range** | held the measured value 85%–91% of the time in backtest, 78% over 1,971 live hours |
-| **Assistant eval** (30 questions) | 93% of final answers fully grounded, 90% right tool or correct decline; verifier caught invented numbers in 3 first drafts |
-| **Verifier stress test** | caught 426 of 489 seeded wrong numbers (87%); blocked 0 of 500 correct ones |
-| **Unattended** | retrained every night for 131 nights in a row (since 19 Jun 2026) |
+| **Live forecasts scored** | 56 forecasts, 3,915 hours (2026-09-04 to 2026-10-29) |
+| **Live error (MAE)** | 6.65 µg/m³: **30% lower than persistence**, 42% lower than the CAMS forecast |
+| **Forecasts that beat CAMS** | 54 of 56 |
+| **Backtest** (5-fold rolling origin) | 14% lower MAE than persistence, 14% than seasonal naive, 43% than CAMS |
+| **80% prediction range** | held the measured value 86%–91% of the time in backtest, 78% over 2,043 live hours |
+| **Assistant eval** (30 questions) | 93% of final answers fully grounded, 87% right tool or correct decline; verifier caught invented numbers in 5 first drafts |
+| **Verifier stress test** | caught 433 of 492 seeded wrong numbers (88%); blocked 0 of 500 correct ones |
+| **Unattended** | retrained every night for 132 nights in a row (since 19 Jun 2026) |
 | **Tests** | 84, run before every retrain and on every push |
 
-<sub>Updated automatically by the nightly job · 2026-10-28</sub>
+<sub>Updated automatically by the nightly job · 2026-10-29</sub>
 <!-- RESULTS:END -->
 
 Persistence ("PM2.5 stays as it is now") is the honest headline baseline.
