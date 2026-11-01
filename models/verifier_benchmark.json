@@ -1,35 +1,35 @@
 {
   "what": "verifier tested on real tool outputs with seeded wrong numbers",
-  "true_values": 457,
+  "true_values": 447,
   "correct_answers_tested": 500,
   "correct_answers_wrongly_blocked": 0,
-  "wrong_answers_tested": 491,
-  "wrong_answers_caught": 429,
-  "catch_rate": 0.874,
+  "wrong_answers_tested": 493,
+  "wrong_answers_caught": 436,
+  "catch_rate": 0.884,
   "by_error_size": {
     "2%": {
-      "tested": 97,
-      "caught": 89,
-      "collisions": 8,
-      "catch_rate": 0.918
+      "tested": 106,
+      "caught": 94,
+      "collisions": 12,
+      "catch_rate": 0.887
     },
     "5%": {
-      "tested": 123,
+      "tested": 118,
       "caught": 107,
-      "collisions": 16,
-      "catch_rate": 0.87
+      "collisions": 11,
+      "catch_rate": 0.907
     },
     "10%": {
-      "tested": 102,
-      "caught": 89,
+      "tested": 98,
+      "caught": 85,
       "collisions": 13,
-      "catch_rate": 0.873
+      "catch_rate": 0.867
     },
     "25%": {
-      "tested": 84,
-      "caught": 72,
-      "collisions": 12,
-      "catch_rate": 0.857
+      "tested": 86,
+      "caught": 78,
+      "collisions": 8,
+      "catch_rate": 0.907
     },
     "50%": {
       "tested": 85,
