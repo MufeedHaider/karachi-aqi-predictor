@@ -4,54 +4,54 @@
     {
       "name": "beats CAMS",
       "passed": true,
-      "detail": "mean skill vs CAMS +46.8%"
+      "detail": "mean skill vs CAMS +46.9%"
     },
     {
       "name": "beats persistence",
       "passed": true,
-      "detail": "mean skill vs persistence +19.1%"
+      "detail": "mean skill vs persistence +19.3%"
     },
     {
       "name": "no regression vs CAMS",
       "passed": true,
-      "detail": "+46.6% -> +46.8% (drop -0.2%, limit 5%)"
+      "detail": "+46.8% -> +46.9% (drop -0.1%, limit 5%)"
     },
     {
       "name": "no regression at 24h",
       "passed": true,
-      "detail": "MAE 5.11 -> 5.10 (-0.2%, limit 15%)"
+      "detail": "MAE 5.10 -> 5.27 (+3.2%, limit 15%)"
     }
   ],
   "warnings": [
     {
       "name": "interval coverage 1h",
       "passed": true,
-      "detail": "84.7% (target 80%, warn outside 70%-90%)"
+      "detail": "83.3% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 3h",
       "passed": true,
-      "detail": "85.1% (target 80%, warn outside 70%-90%)"
+      "detail": "83.0% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 6h",
       "passed": true,
-      "detail": "82.9% (target 80%, warn outside 70%-90%)"
+      "detail": "81.8% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 12h",
       "passed": true,
-      "detail": "82.1% (target 80%, warn outside 70%-90%)"
+      "detail": "82.6% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 24h",
       "passed": true,
-      "detail": "84.4% (target 80%, warn outside 70%-90%)"
+      "detail": "85.2% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 48h",
       "passed": true,
-      "detail": "85.0% (target 80%, warn outside 70%-90%)"
+      "detail": "85.3% (target 80%, warn outside 70%-90%)"
     },
     {
       "name": "interval coverage 72h",
