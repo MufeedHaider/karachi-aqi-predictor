@@ -1,41 +1,41 @@
 {
   "what": "verifier tested on real tool outputs with seeded wrong numbers",
-  "true_values": 437,
+  "true_values": 445,
   "correct_answers_tested": 500,
   "correct_answers_wrongly_blocked": 0,
   "wrong_answers_tested": 491,
-  "wrong_answers_caught": 391,
-  "catch_rate": 0.796,
+  "wrong_answers_caught": 396,
+  "catch_rate": 0.807,
   "by_error_size": {
     "2%": {
-      "tested": 105,
-      "caught": 85,
-      "collisions": 20,
-      "catch_rate": 0.81
+      "tested": 107,
+      "caught": 90,
+      "collisions": 17,
+      "catch_rate": 0.841
     },
     "5%": {
       "tested": 119,
-      "caught": 94,
-      "collisions": 25,
-      "catch_rate": 0.79
+      "caught": 96,
+      "collisions": 23,
+      "catch_rate": 0.807
     },
     "10%": {
-      "tested": 90,
-      "caught": 73,
-      "collisions": 17,
-      "catch_rate": 0.811
+      "tested": 94,
+      "caught": 74,
+      "collisions": 20,
+      "catch_rate": 0.787
     },
     "25%": {
-      "tested": 90,
-      "caught": 67,
-      "collisions": 23,
-      "catch_rate": 0.744
-    },
-    "50%": {
       "tested": 87,
       "caught": 72,
       "collisions": 15,
       "catch_rate": 0.828
+    },
+    "50%": {
+      "tested": 84,
+      "caught": 64,
+      "collisions": 20,
+      "catch_rate": 0.762
     }
   },
   "note": "misses are collisions: the wrong number equals another true value in the data"
