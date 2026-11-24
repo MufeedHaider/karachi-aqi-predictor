@@ -1,41 +1,41 @@
 {
   "what": "verifier tested on real tool outputs with seeded wrong numbers",
-  "true_values": 450,
+  "true_values": 380,
   "correct_answers_tested": 500,
   "correct_answers_wrongly_blocked": 0,
-  "wrong_answers_tested": 497,
-  "wrong_answers_caught": 440,
-  "catch_rate": 0.885,
+  "wrong_answers_tested": 494,
+  "wrong_answers_caught": 442,
+  "catch_rate": 0.895,
   "by_error_size": {
     "2%": {
-      "tested": 104,
-      "caught": 93,
-      "collisions": 11,
-      "catch_rate": 0.894
+      "tested": 99,
+      "caught": 92,
+      "collisions": 7,
+      "catch_rate": 0.929
     },
     "5%": {
-      "tested": 117,
-      "caught": 110,
-      "collisions": 7,
-      "catch_rate": 0.94
+      "tested": 107,
+      "caught": 98,
+      "collisions": 9,
+      "catch_rate": 0.916
     },
     "10%": {
-      "tested": 102,
-      "caught": 85,
-      "collisions": 17,
-      "catch_rate": 0.833
+      "tested": 99,
+      "caught": 89,
+      "collisions": 10,
+      "catch_rate": 0.899
     },
     "25%": {
-      "tested": 90,
-      "caught": 81,
-      "collisions": 9,
-      "catch_rate": 0.9
+      "tested": 94,
+      "caught": 80,
+      "collisions": 14,
+      "catch_rate": 0.851
     },
     "50%": {
-      "tested": 84,
-      "caught": 71,
-      "collisions": 13,
-      "catch_rate": 0.845
+      "tested": 95,
+      "caught": 83,
+      "collisions": 12,
+      "catch_rate": 0.874
     }
   },
   "note": "misses are collisions: the wrong number equals another true value in the data"
